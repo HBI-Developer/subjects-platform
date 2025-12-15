@@ -1,3 +1,4 @@
+import { PDFViewer } from "@/components";
 import type { RootState } from "@/store";
 import {
   Button,
@@ -53,6 +54,7 @@ const resource = createOverlay<Props>(({ title, description, ...rest }) => {
               {description && (
                 <Dialog.Description>{description}</Dialog.Description>
               )}
+              <PDFViewer />
               <Presence
                 present={false}
                 animationName={{ _closed: "fade-out" }}
