@@ -20,23 +20,25 @@ body {
   --sb-size: 8px;
 }
 
-.custom-scroll::-webkit-scrollbar {
-  width: var(--sb-size);
-}
+@media (min-width: 769px) {
+  .custom-scroll::-webkit-scrollbar {
+    width: var(--sb-size);
+  }
 
-.custom-scroll::-webkit-scrollbar-track {
-  background: var(--sb-track-color);
-  border-radius: 5px;
-}
+  .custom-scroll::-webkit-scrollbar-track {
+    background: var(--sb-track-color);
+    border-radius: 5px;
+  }
 
-.custom-scroll::-webkit-scrollbar-thumb {
-  background: var(--sb-thumb-color);
-  border-radius: 5px;
-}
+  .custom-scroll::-webkit-scrollbar-thumb {
+    background: var(--sb-thumb-color);
+    border-radius: 5px;
+  }
 
-@supports not selector(::-webkit-scrollbar) {
-  .custom-scroll {
-    scrollbar-color: var(--sb-thumb-color) var(--sb-track-color);
+  @supports not selector(::-webkit-scrollbar) {
+    .custom-scroll {
+      scrollbar-color: var(--sb-thumb-color) var(--sb-track-color);
+    }
   }
 }
 

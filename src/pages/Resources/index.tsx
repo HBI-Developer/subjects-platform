@@ -26,6 +26,7 @@ export default function Resources() {
         alignItems={"center"}
         userSelect={"none"}
         cursor={"pointer"}
+        alignSelf={"flex-start"}
         onClick={() => navigate(2.5, 1.5)}
         transition={".2s color ease-in-out"}
         color={{ base: color, _hover: `${color}.500` }}

@@ -1,0 +1,76 @@
+.container {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background-color: #eeeeee10;
+  border-radius: 0.5rem;
+  margin-inline: auto;
+  direction: ltr;
+  position: relative;
+
+  .header {
+    position: absolute;
+    top: 3%;
+    padding-inline: 3%;
+    align-items: center;
+    font-weight: bold;
+    user-select: none;
+    display: flex;
+    visibility: hidden;
+    opacity: 0;
+    justify-content: space-between;
+    width: 100%;
+    transition: 5s linear 1s;
+    transition-property: opacity, display;
+
+    &.show {
+      visibility: visible;
+      opacity: 0.9;
+    }
+  }
+
+  .track {
+    width: 100%;
+    padding-inline: 3%;
+    position: absolute;
+    column-gap: 10px;
+    display: grid;
+    visibility: hidden;
+    align-items: center;
+    grid-template-columns: 1fr auto;
+    left: 0;
+    opacity: 0;
+    bottom: 5%;
+    transition: 5s opacity linear 1s;
+
+    &.show {
+      visibility: visible;
+      opacity: 0.9;
+    }
+  }
+
+  .volume {
+    position: relative;
+
+    .volumeBar {
+      position: absolute;
+      height: 70%;
+      left: 50%;
+      bottom: 110%;
+      display: grid;
+      grid-template-rows: 1fr auto;
+      row-gap: 5px;
+      transform: translateX(-50%);
+      padding: 0.5rem;
+      background-color: #00000025;
+    }
+  }
+}
+
+.stateEffect {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: none;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.5);
+}
