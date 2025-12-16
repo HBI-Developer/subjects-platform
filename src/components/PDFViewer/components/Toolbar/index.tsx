@@ -5,7 +5,6 @@ import {
   Icon,
   Text,
   useBreakpointValue,
-  Portal,
   Separator,
 } from "@chakra-ui/react";
 import {
@@ -22,8 +21,7 @@ import { useFullscreen } from "@embedpdf/plugin-fullscreen/react";
 import { useExportCapability } from "@embedpdf/plugin-export/react";
 import { useRotateCapability } from "@embedpdf/plugin-rotate/react";
 import { useState } from "react";
-import PageControls from "../PageControls";
-import ZoomControls from "../ZoomControls";
+import { PageControls, ZoomControls } from "..";
 
 interface PdfToolbarProps {
   onToggleThumbnails: () => void;
@@ -62,71 +60,81 @@ const Toolbar = ({ onToggleThumbnails, thumbnailsOpen }: PdfToolbarProps) => {
       zIndex={20}
     >
       <Box display="flex" alignItems="center" gap={1}>
-        <Menu.Root>
+        <Menu.Root open={menuOpen} onOpenChange={(e) => setMenuOpen(e.open)}>
           <Menu.Trigger asChild>
             <IconButton
               aria-label="القائمة"
               size={buttonSize}
               variant="ghost"
               color="white"
-              onClick={() => setMenuOpen(!menuOpen)}
             >
-              <FaEllipsisV size={iconSize} />
+              <Icon>
+                <FaEllipsisV size={iconSize} />
+              </Icon>
             </IconButton>
           </Menu.Trigger>
-          <Portal>
-            <Menu.Positioner>
-              <Menu.Content>
-                <Menu.Item
-                  value="new-txt-a"
-                  onClick={() => exportProvider?.download()}
-                >
-                  <Icon as={FaFileDownload} mr={2} />
-                  <Text>تحميل PDF</Text>
-                </Menu.Item>
-                <Menu.Item value="new-file-a" onClick={handlePrint}>
-                  <Icon as={FaPrint} mr={2} />
-                  <Text>طباعة</Text>
-                </Menu.Item>
+          <Menu.Positioner>
+            <Menu.Content minWidth="200px">
+              <Menu.Item value="1" onClick={() => exportProvider?.download()}>
+                <Icon mr={2}>
+                  <FaFileDownload />
+                </Icon>
+                <Text>تحميل PDF</Text>
+              </Menu.Item>
 
-                <Separator />
+              <Menu.Item value="2" onClick={handlePrint}>
+                <Icon mr={2}>
+                  <FaPrint />
+                </Icon>
+                <Text>طباعة</Text>
+              </Menu.Item>
 
-                <Menu.Item
-                  value="new-win-a"
-                  onClick={() => rotateProvider?.rotateForward()}
-                >
-                  <Icon as={FaUndo} mr={2} />
-                  <Text>تدوير لليمين</Text>
-                </Menu.Item>
-                <Menu.Item
-                  value="open-file-a"
-                  onClick={() => rotateProvider?.rotateBackward()}
-                >
-                  <Icon as={FaSync} mr={2} />
-                  <Text>تدوير لليسار</Text>
-                </Menu.Item>
+              <Separator />
 
-                <Separator />
+              <Menu.Item
+                value="3"
+                onClick={() => rotateProvider?.rotateForward()}
+              >
+                <Icon mr={2}>
+                  <FaUndo />
+                </Icon>
+                <Text>تدوير لليمين</Text>
+              </Menu.Item>
 
-                <Menu.Item
-                  value="export-a"
-                  onClick={() => fullscreenProvider?.toggleFullscreen()}
-                >
-                  {fullscreenState.isFullscreen ? (
-                    <>
-                      <Icon as={FaCompress} mr={2} />
-                      <Text>إنهاء ملء الشاشة</Text>
-                    </>
-                  ) : (
-                    <>
-                      <Icon as={FaExpand} mr={2} />
-                      <Text>ملء الشاشة</Text>
-                    </>
-                  )}
-                </Menu.Item>
-              </Menu.Content>
-            </Menu.Positioner>
-          </Portal>
+              <Menu.Item
+                value="4"
+                onClick={() => rotateProvider?.rotateBackward()}
+              >
+                <Icon mr={2}>
+                  <FaSync />
+                </Icon>
+                <Text>تدوير لليسار</Text>
+              </Menu.Item>
+
+              <Separator />
+
+              <Menu.Item
+                value="5"
+                onClick={() => fullscreenProvider?.toggleFullscreen()}
+              >
+                {fullscreenState.isFullscreen ? (
+                  <>
+                    <Icon mr={2}>
+                      <FaCompress />
+                    </Icon>
+                    <Text>إنهاء ملء الشاشة</Text>
+                  </>
+                ) : (
+                  <>
+                    <Icon mr={2}>
+                      <FaExpand />
+                    </Icon>
+                    <Text>ملء الشاشة</Text>
+                  </>
+                )}
+              </Menu.Item>
+            </Menu.Content>
+          </Menu.Positioner>
         </Menu.Root>
 
         <IconButton
@@ -137,7 +145,9 @@ const Toolbar = ({ onToggleThumbnails, thumbnailsOpen }: PdfToolbarProps) => {
           onClick={onToggleThumbnails}
           display={{ base: "none", md: "flex" }}
         >
-          <FaThList size={iconSize} />
+          <Icon>
+            <FaThList size={iconSize} />
+          </Icon>
         </IconButton>
       </Box>
 

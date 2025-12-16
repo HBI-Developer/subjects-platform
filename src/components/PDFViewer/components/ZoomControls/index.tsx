@@ -2,11 +2,11 @@ import {
   Box,
   IconButton,
   Menu,
-  MenuItem,
   Input,
   Text,
   useBreakpointValue,
-  Portal,
+  Icon,
+  Separator,
 } from "@chakra-ui/react";
 import {
   FaSearchPlus,
@@ -93,83 +93,83 @@ const ZoomControls = () => {
       >
         %
       </Text>
-      <Menu.Root>
+
+      <Menu.Root open={isOpen} onOpenChange={(e) => setIsOpen(e.open)}>
         <Menu.Trigger asChild>
           <IconButton
             aria-label="خيارات التكبير"
             size={buttonSize}
             variant="ghost"
             color="white"
-            onClick={() => setIsOpen(!isOpen)}
           >
-            <FaChevronDown size={iconSize} />
+            <Icon>
+              <FaChevronDown size={iconSize} />
+            </Icon>
           </IconButton>
         </Menu.Trigger>
-        <Portal>
-          <Menu.Positioner>
-            <Menu.Content minWidth="180px">
-              {ZOOM_PRESETS.map(({ value, label }) => (
-                <Menu.Item
-                  key={value}
-                  onClick={() => handleZoomSelect(value)}
-                  value={Math.abs(state.currentZoomLevel - value) < 0.01}
-                >
-                  <Text fontSize="sm">{label}</Text>
-                </Menu.Item>
-              ))}
-              <Menu.Item value="new-file">New File...</Menu.Item>
-              <Menu.Item value="new-win">New Window</Menu.Item>
-              <Menu.Item value="open-file">Open File...</Menu.Item>
-              <Menu.Item value="export">Export</Menu.Item>
-            </Menu.Content>
-          </Menu.Positioner>
-        </Portal>
-      </Menu.Root>
-
-      <Menu.Root open={isOpen} onExitComplete={() => setIsOpen(false)}>
-        <Menu.List minWidth="180px">
-          {ZOOM_PRESETS.map(({ value, label }) => (
-            <MenuItem
-              key={value}
-              onClick={() => handleZoomSelect(value)}
-              isActive={Math.abs(state.currentZoomLevel - value) < 0.01}
-            >
-              <Text fontSize="sm">{label}</Text>
-            </MenuItem>
-          ))}
-          <Divider />
-          {ZOOM_MODES.map(({ value, label, icon: Icon }) => (
-            <MenuItem
-              key={value}
-              onClick={() => handleZoomSelect(value)}
-              isActive={state.zoomLevel === value}
-            >
-              <Icon size={14} style={{ marginLeft: "8px" }} />
-              <Text fontSize="sm" mr="auto">
-                {label}
-              </Text>
-            </MenuItem>
-          ))}
-        </Menu.List>
+        <Menu.Positioner>
+          <Menu.Content minWidth="180px">
+            {ZOOM_PRESETS.map(({ value, label }) => (
+              <Menu.Item
+                key={value}
+                value={value.toString()}
+                onClick={() => handleZoomSelect(value)}
+                closeOnSelect={false}
+                backgroundColor={
+                  Math.abs(state.currentZoomLevel - value) < 0.01
+                    ? "blue.500"
+                    : undefined
+                }
+              >
+                <Text fontSize="sm">{label}</Text>
+              </Menu.Item>
+            ))}
+            <Separator />
+            {ZOOM_MODES.map(({ value, label, icon: IconComponent }) => (
+              <Menu.Item
+                key={value}
+                value={value.toString()}
+                onClick={() => handleZoomSelect(value)}
+                closeOnSelect={false}
+                backgroundColor={
+                  state.zoomLevel === value ? "blue.500" : undefined
+                }
+              >
+                <Icon mr={2}>
+                  <IconComponent size={14} />
+                </Icon>
+                <Text fontSize="sm" mr="auto">
+                  {label}
+                </Text>
+              </Menu.Item>
+            ))}
+          </Menu.Content>
+        </Menu.Positioner>
       </Menu.Root>
 
       <IconButton
         aria-label="تصغير"
-        icon={<FaSearchMinus size={iconSize} />}
         size={buttonSize}
         variant="ghost"
         color="white"
         onClick={handleZoomOut}
-      />
+      >
+        <Icon>
+          <FaSearchMinus size={iconSize} />
+        </Icon>
+      </IconButton>
 
       <IconButton
         aria-label="تكبير"
-        icon={<FaSearchPlus size={iconSize} />}
         size={buttonSize}
         variant="ghost"
         color="white"
         onClick={handleZoomIn}
-      />
+      >
+        <Icon>
+          <FaSearchPlus size={iconSize} />
+        </Icon>
+      </IconButton>
     </Box>
   );
 };

@@ -1,22 +1,19 @@
-import {
-  Box,
-  IconButton,
-  Input,
-  Text,
-  useBreakpointValue,
-} from "@chakra-ui/react";
+import { Box, IconButton, Input, Text, Icon } from "@chakra-ui/react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useScroll } from "@embedpdf/plugin-scroll/react";
 import { useEffect, useState } from "react";
+import useScreenState from "@/hooks/useScreenState";
 
 const PageControls = () => {
   const { currentPage, totalPages, scrollToPage } = useScroll();
   const [inputValue, setInputValue] = useState("");
-  const isMobile = useBreakpointValue({ base: true, md: false });
+  const { isMobile, isVertical } = useScreenState();
 
   useEffect(() => {
     setInputValue(currentPage.toString());
   }, [currentPage]);
+
+  if (isMobile && isVertical) return;
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
@@ -59,7 +56,9 @@ const PageControls = () => {
         onClick={handlePreviousPage}
         disabled={currentPage <= 1}
       >
-        <FaChevronLeft size={iconSize} />
+        <Icon>
+          <FaChevronRight size={iconSize} />
+        </Icon>
       </IconButton>
 
       <form onSubmit={handlePageSubmit}>
@@ -94,7 +93,9 @@ const PageControls = () => {
         onClick={handleNextPage}
         disabled={currentPage >= totalPages}
       >
-        <FaChevronRight size={iconSize} />
+        <Icon>
+          <FaChevronLeft size={iconSize} />
+        </Icon>
       </IconButton>
     </Box>
   );

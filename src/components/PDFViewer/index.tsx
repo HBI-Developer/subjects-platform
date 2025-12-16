@@ -1,4 +1,4 @@
-import { Box, useDisclosure } from "@chakra-ui/react";
+import { Box, useBreakpointValue, useDisclosure } from "@chakra-ui/react";
 import { usePdfiumEngine } from "@embedpdf/engines/react";
 import { EmbedPDF } from "@embedpdf/core/react";
 import { FullscreenProvider } from "@embedpdf/plugin-fullscreen/react";
@@ -9,22 +9,19 @@ import { RenderLayer } from "@embedpdf/plugin-render/react";
 import { TilingLayer } from "@embedpdf/plugin-tiling/react";
 import { Rotate } from "@embedpdf/plugin-rotate/react";
 import { Download } from "@embedpdf/plugin-export/react";
-
 import { usePlugins } from "./hooks/usePlugins";
 import { ThumbnailSidebar, Toolbar } from "./components";
 
 interface PdfViewerProps {
   documentUrl?: string;
-  height?: string | number;
 }
 
-export const PdfViewer = ({
-  documentUrl,
-  height = "100vh",
-}: PdfViewerProps) => {
+const PdfViewer = ({ documentUrl }: PdfViewerProps) => {
   const plugins = usePlugins(documentUrl);
   const { engine, isLoading, error } = usePdfiumEngine();
   const { open: thumbnailsOpen, onToggle: toggleThumbnails } = useDisclosure();
+  const sidebarWidth = useBreakpointValue({ base: "200px", md: "250px" });
+  const height = "100vh";
 
   if (error) {
     return (
@@ -95,10 +92,14 @@ export const PdfViewer = ({
                 flexDirection={{ base: "column", md: "row" }}
               >
                 {/* الشريط الجانبي للصور المصغرة */}
-                <ThumbnailSidebar
-                  isOpen={thumbnailsOpen && pluginsReady}
-                  onClose={() => toggleThumbnails()}
-                />
+                <Box
+                  width={sidebarWidth}
+                  flexShrink={0}
+                  display={thumbnailsOpen && pluginsReady ? "flex" : "none"} // ✅ CSS toggle
+                  flexDirection="column"
+                >
+                  <ThumbnailSidebar onClose={() => toggleThumbnails()} />
+                </Box>
 
                 {/* منطقة عرض PDF */}
                 <Box flex={1} position="relative" overflow="hidden">
@@ -118,27 +119,36 @@ export const PdfViewer = ({
                           width,
                           height,
                           document,
-                        }) => (
-                          <Rotate pageSize={{ width, height }}>
-                            <Box
-                              key={document?.id}
-                              width={width}
-                              height={height}
-                              position="relative"
-                              bg="white"
-                              mx="auto"
-                              my={2}
-                              boxShadow="md"
-                              borderRadius="sm"
+                        }) => {
+                          return (
+                            <Rotate
+                              pageSize={{ width, height }}
+                              style={{
+                                position: "static",
+                                transformOrigin: `top left`,
+                              }}
                             >
-                              <RenderLayer pageIndex={pageIndex} />
-                              <TilingLayer
-                                pageIndex={pageIndex}
-                                scale={scale}
-                              />
-                            </Box>
-                          </Rotate>
-                        )}
+                              <Box
+                                key={document?.id}
+                                width={width}
+                                height={height}
+                                position="relative"
+                                bg="white"
+                                mx="auto"
+                                my={2}
+                                boxShadow="md"
+                                borderRadius="sm"
+                                overflow={"hidden"}
+                              >
+                                <RenderLayer pageIndex={pageIndex} />
+                                <TilingLayer
+                                  pageIndex={pageIndex}
+                                  scale={scale}
+                                />
+                              </Box>
+                            </Rotate>
+                          );
+                        }}
                       />
                     ) : (
                       <Box
@@ -173,3 +183,5 @@ export const PdfViewer = ({
     </Box>
   );
 };
+
+export default PdfViewer;
