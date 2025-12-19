@@ -60,7 +60,7 @@ function App() {
           <Page show={0.5} ready={1} initFunc={() => toPage(1)}>
             <Welcome />
           </Page>
-          <Page show={1.5} ready={2} initFunc={() => toPage(2)}>
+          <Page show={1.5} ready={2}>
             <Subjects />
           </Page>
           <Page show={2.5} ready={3} initFunc={() => toPage(3)}>

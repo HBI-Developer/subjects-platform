@@ -1,4 +1,4 @@
-import { AudioPlayer, Carousel, PDFViewer } from "@/components";
+import { AudioPlayer, Carousel, PDFViewer, VideoPlayer } from "@/components";
 import type { RootState } from "@/store";
 import {
   Button,
@@ -56,7 +56,10 @@ const resource = createOverlay<Props>(({ title, description, ...rest }) => {
               )}
               {/* <PDFViewer /> */}
               {/* <Carousel /> */}
-              <AudioPlayer src={"https://server7.mp3quran.net/s_gmd/012.mp3"} />
+              {/* <AudioPlayer src={"https://server7.mp3quran.net/s_gmd/012.mp3"} /> */}
+              <VideoPlayer
+                src={"https://www.youtube.com/watch?v=7Ron6MN45LY"}
+              />
               <Presence
                 present={false}
                 animationName={{ _closed: "fade-out" }}

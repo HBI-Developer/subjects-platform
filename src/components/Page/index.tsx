@@ -8,7 +8,7 @@ type Props = PresenceProps & {
   children: React.ReactNode;
   show: number;
   ready: number;
-  initFunc: () => void;
+  initFunc?: () => void;
 };
 
 export default function Page({
@@ -24,7 +24,7 @@ export default function Page({
 
   useEffect(() => {
     if (scope === show && mainLoading) {
-      initFunc();
+      initFunc?.();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope]);
