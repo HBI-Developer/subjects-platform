@@ -1,8 +1,9 @@
 import { ErrorMessage, Panel } from "@/components";
 import navigate from "@/functions/navigate";
 import type { RootState } from "@/store";
-import { Flex, Heading, Show } from "@chakra-ui/react";
+import { Center, Flex, Heading, Icon, Show, Text } from "@chakra-ui/react";
 import { BiChevronRight } from "react-icons/bi";
+import { GiSolarSystem } from "react-icons/gi";
 import {
   TbFileTypePdf,
   TbPhoto,
@@ -117,6 +118,7 @@ export default function Resources() {
         alignItems={"center"}
         userSelect={"none"}
         cursor={"pointer"}
+        zIndex={5}
         alignSelf={"flex-start"}
         onClick={() => navigate(2.5, 1.5)}
         transition={".2s color ease-in-out"}
@@ -141,23 +143,45 @@ export default function Resources() {
           />
         }
       >
-        {resources.map((resource, i) => {
-          return (
-            <Panel
-              key={i}
-              title={resource.title}
-              icon={getIcon(resource.type)}
-              onClick={() => {
-                dispatch(setResourceLoading(true));
-                Resource.open("r", {
-                  title: resource.title,
-                  type: resource.type,
-                  resources: resource.resources,
-                });
-              }}
-            />
-          );
-        })}
+        <Show
+          when={resources.length}
+          fallback={
+            <Center
+              position={"absolute"}
+              top={0}
+              bottom={0}
+              left={0}
+              right={0}
+              color={color}
+              userSelect={"none"}
+              flexDirection={"column"}
+              rowGap={"10px"}
+            >
+              <Icon boxSize={"55px"}>
+                <GiSolarSystem />
+              </Icon>
+              <Text>ﻻ يوجد موارد هنا بعد</Text>
+            </Center>
+          }
+        >
+          {resources.map((resource, i) => {
+            return (
+              <Panel
+                key={i}
+                title={resource.title}
+                icon={getIcon(resource.type)}
+                onClick={() => {
+                  dispatch(setResourceLoading(true));
+                  Resource.open("r", {
+                    title: resource.title,
+                    type: resource.type,
+                    resources: resource.resources,
+                  });
+                }}
+              />
+            );
+          })}
+        </Show>
       </Show>
     </Flex>
   );
