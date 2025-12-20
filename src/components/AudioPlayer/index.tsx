@@ -18,6 +18,8 @@ import {
   LuVolumeOff,
   LuVolumeX,
 } from "react-icons/lu";
+import { useDispatch } from "react-redux";
+import { setResourceLoading } from "@/store/slice/loading";
 
 interface Props {
   src: string;
@@ -47,6 +49,7 @@ export default function AudioPlayer({ src }: Props) {
   const containerRef = useRef<HTMLDivElement>(null),
     canvasRef = useRef<HTMLCanvasElement>(null),
     stateEffect = useRef<HTMLDivElement>(null),
+    dispatch = useDispatch(),
     [error, setError] = useState<number | null>(null),
     audio = useRef(new Audio(src)),
     [duration, setDuration] = useState(0),
@@ -231,6 +234,8 @@ export default function AudioPlayer({ src }: Props) {
           }
         } catch (_) {
           setError(500);
+        } finally {
+          dispatch(setResourceLoading(false));
         }
       }
     };

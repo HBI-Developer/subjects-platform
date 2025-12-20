@@ -63,7 +63,7 @@ function App() {
           <Page show={1.5} ready={2}>
             <Subjects />
           </Page>
-          <Page show={2.5} ready={3} initFunc={() => toPage(3)}>
+          <Page show={2.5} ready={3}>
             <Resources />
           </Page>
         </Box>
@@ -74,7 +74,7 @@ function App() {
             _closed: "fade-out",
           }}
           animationDuration="moderate"
-          zIndex={5}
+          zIndex={10}
           position={"absolute"}
           top={0}
           bottom={0}

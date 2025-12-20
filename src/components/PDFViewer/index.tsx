@@ -11,17 +11,23 @@ import { Rotate } from "@embedpdf/plugin-rotate/react";
 import { Download } from "@embedpdf/plugin-export/react";
 import { usePlugins } from "./hooks/usePlugins";
 import { ThumbnailSidebar, Toolbar } from "./components";
+import { useDispatch } from "react-redux";
+import { setResourceLoading } from "@/store/slice/loading";
 
 interface PdfViewerProps {
-  documentUrl?: string;
+  src: string;
 }
 
-const PdfViewer = ({ documentUrl }: PdfViewerProps) => {
-  const plugins = usePlugins(documentUrl);
+const PdfViewer = ({ src }: PdfViewerProps) => {
+  const plugins = usePlugins(src);
   const { engine, isLoading, error } = usePdfiumEngine();
   const { open: thumbnailsOpen, onToggle: toggleThumbnails } = useDisclosure();
   const sidebarWidth = useBreakpointValue({ base: "200px", md: "250px" });
   const height = "100vh";
+  const dispatch = useDispatch();
+  const onReady = () => {
+    dispatch(setResourceLoading(false));
+  };
 
   if (error) {
     return (
@@ -110,6 +116,9 @@ const PdfViewer = ({ documentUrl }: PdfViewerProps) => {
                       backgroundColor: "#f1f3f5",
                       overflow: "auto",
                     }}
+                    onLoad={onReady}
+                    onLoadedData={onReady}
+                    onLoadedMetadata={onReady}
                   >
                     {pluginsReady ? (
                       <Scroller

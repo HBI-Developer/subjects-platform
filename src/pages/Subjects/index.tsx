@@ -2,13 +2,15 @@ import { ErrorMessage, Panel } from "@/components";
 import { db } from "@/firebase-config.ts";
 import navigate from "@/functions/navigate";
 import { Flex, Show } from "@chakra-ui/react";
-import { BiAtom } from "react-icons/bi";
+import { Icon } from "@iconify/react";
 import { collection, FirestoreError, getDocs } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/store";
 import { setMainLoading } from "@/store/slice/loading";
 import { setScope } from "@/store/slice/scope";
+import { setSubjectIdentifier } from "@/store/slice/identifier";
+import { NAVIGATION_DURATION } from "@/constants";
 
 interface Subject {
   id: string;
@@ -18,7 +20,7 @@ interface Subject {
 
 export default function Subjects() {
   const [subjects, setSubjects] = useState<Array<Subject>>([]),
-    [error, setError] = useState(0),
+    [error, setError] = useState<number | string>(0),
     loading = useSelector((state: RootState) => state.loading.main),
     dispatch = useDispatch();
 
@@ -34,61 +36,7 @@ export default function Subjects() {
       setSubjects(data);
     } catch (er) {
       const error = er as FirestoreError;
-      let code = 500;
-
-      switch (error.code as string) {
-        case "CANCELLED": {
-          break;
-        }
-        case "INVALID_ARGUMENT": {
-          break;
-        }
-        case "DEADLINE_EXCEEDED": {
-          break;
-        }
-        case "NOT_FOUND": {
-          break;
-        }
-        case "ALREADY_EXISTS": {
-          break;
-        }
-        case "PERMISSION_DENIED": {
-          break;
-        }
-        case "RESOURCE_EXHAUSTED": {
-          break;
-        }
-        case "FAILED_PRECONDITION": {
-          break;
-        }
-        case "ABORTED": {
-          break;
-        }
-        case "OUT_OF_RANGE": {
-          break;
-        }
-        case "UNIMPLEMENTED": {
-          break;
-        }
-        case "INTERNAL": {
-          break;
-        }
-        case "UNAVAILABLE": {
-          break;
-        }
-        case "DATA_LOSS": {
-          break;
-        }
-        case "UNAUTHENTICATED": {
-          break;
-        }
-
-        default: {
-          code = 500;
-        }
-      }
-
-      setError(code);
+      setError(error.code);
     } finally {
       dispatch(setMainLoading(false));
       dispatch(setScope(2));
@@ -112,14 +60,33 @@ export default function Subjects() {
       overflowY={loading ? "hidden" : "auto"}
       alignItems={{ base: "center", md: "flex-start" }}
     >
-      <Show when={!error} fallback={<ErrorMessage code={error} />}>
+      <Show
+        when={!error}
+        fallback={
+          <ErrorMessage
+            retry={() => {
+              dispatch(setMainLoading(true));
+              dispatch(setScope(1.5));
+              setTimeout(() => {
+                setError(0);
+                fetchSubjects();
+              }, NAVIGATION_DURATION);
+            }}
+            code={error}
+          />
+        }
+      >
         {subjects.map((subject, i) => {
           return (
             <Panel
               key={i}
               title={subject.title}
-              icon={<BiAtom />}
+              icon={<Icon icon={subject.icon} />}
               onClick={() => {
+                dispatch(setMainLoading(true));
+                dispatch(
+                  setSubjectIdentifier({ title: subject.title, id: subject.id })
+                );
                 navigate(1.5, 2.5);
               }}
             />

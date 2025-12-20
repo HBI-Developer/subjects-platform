@@ -14,6 +14,7 @@ export default function Welcome() {
       top={0}
       bottom={0}
       left={0}
+      userSelect={"none"}
       right={0}
     >
       <Box>

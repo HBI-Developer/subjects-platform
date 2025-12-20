@@ -1,17 +1,30 @@
-import { httpStatusMessages } from "@/constants";
-import { Center, Heading, HStack, Separator, Text } from "@chakra-ui/react";
+import getErrorMessage from "@/functions/getErrorMessage";
+import type { RootState } from "@/store";
+import {
+  Button,
+  Center,
+  Heading,
+  HStack,
+  Separator,
+  Text,
+} from "@chakra-ui/react";
+import { useSelector } from "react-redux";
 
 interface Props {
-  code: number;
+  code: number | string;
+  retry: () => void;
 }
 
-export default function ErrorMessage({ code }: Props) {
+export default function ErrorMessage({ code, retry }: Props) {
+  const color = useSelector((state: RootState) => state.color.value);
+
   return (
     <Center
       position={"absolute"}
       zIndex={6}
       backgroundColor={"bg"}
       userSelect={"none"}
+      flexDirection={"column"}
       top={0}
       left={0}
       bottom={0}
@@ -26,8 +39,17 @@ export default function ErrorMessage({ code }: Props) {
           size={"md"}
           color={"white"}
         />
-        <Text>{httpStatusMessages.get(code)}</Text>
+        <Text>{getErrorMessage(code)}</Text>
       </HStack>
+      <Button
+        colorPalette={color}
+        variant={"outline"}
+        size={"md"}
+        marginTop={"10px"}
+        onClick={retry}
+      >
+        إعادة المحاولة
+      </Button>
     </Center>
   );
 }
