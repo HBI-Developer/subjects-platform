@@ -3,7 +3,12 @@ import { db } from "@/firebase-config.ts";
 import navigate from "@/functions/navigate";
 import { Flex, Show } from "@chakra-ui/react";
 import { Icon } from "@iconify/react";
-import { collection, FirestoreError, getDocs } from "firebase/firestore";
+import {
+  collection,
+  FirestoreError,
+  getDocsFromCache,
+  getDocsFromServer,
+} from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/store";
@@ -25,9 +30,30 @@ export default function Subjects() {
     dispatch = useDispatch();
 
   const fetchSubjects = async () => {
+    const CACHE_KEY = "last_fetch_subjects";
+    const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
     try {
       const subjectsCollection = collection(db, "subjects");
-      const snapshot = await getDocs(subjectsCollection);
+      const lastFetch = localStorage.getItem(CACHE_KEY);
+      const now = Date.now();
+
+      let snapshot;
+      const isDataFresh = lastFetch && now - parseInt(lastFetch) < ONE_DAY_MS;
+
+      if (isDataFresh) {
+        try {
+          snapshot = await getDocsFromCache(subjectsCollection);
+          if (snapshot.empty) throw new Error("Cache empty");
+        } catch (_) {
+          snapshot = await getDocsFromServer(subjectsCollection);
+          localStorage.setItem(CACHE_KEY, now.toString());
+        }
+      } else {
+        snapshot = await getDocsFromServer(subjectsCollection);
+        localStorage.setItem(CACHE_KEY, now.toString());
+      }
+
       const data = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -36,6 +62,7 @@ export default function Subjects() {
       setSubjects(data);
     } catch (er) {
       const error = er as FirestoreError;
+
       setError(error.code);
     } finally {
       dispatch(setMainLoading(false));

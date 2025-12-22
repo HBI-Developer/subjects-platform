@@ -50,7 +50,6 @@ export default function AudioPlayer({ src }: Props) {
     canvasRef = useRef<HTMLCanvasElement>(null),
     stateEffect = useRef<HTMLDivElement>(null),
     dispatch = useDispatch(),
-    [error, setError] = useState<number | null>(null),
     audio = useRef(new Audio(src)),
     [duration, setDuration] = useState(0),
     [currentTime, setCurrentTime] = useState(0),
@@ -225,20 +224,7 @@ export default function AudioPlayer({ src }: Props) {
         setVolume(0);
       }
     },
-    loadingEnd = async (withError = false) => {
-      if (withError) {
-        try {
-          const url = await fetch(src);
-          if (!url.ok) {
-            setError(url.status);
-          }
-        } catch (_) {
-          setError(500);
-        } finally {
-          dispatch(setResourceLoading(false));
-        }
-      }
-    };
+    loadingEnd = () => dispatch(setResourceLoading(false));
 
   useEffect(() => {
     if (!containerRef.current || !canvasRef.current) return;
@@ -281,28 +267,25 @@ export default function AudioPlayer({ src }: Props) {
     if (volume > 0) volumeMuted.current = false;
     else volumeMuted.current = true;
 
-    const onLoad = () => loadingEnd(),
-      onError = () => loadingEnd(true);
-
     currentAudio.crossOrigin = "anonymous";
 
     container.addEventListener("resize", setCanvasSize);
-    currentAudio.addEventListener("load", onLoad);
-    currentAudio.addEventListener("canplay", onLoad);
-    currentAudio.addEventListener("canplaythrough", onLoad);
-    currentAudio.addEventListener("loadeddata", onLoad);
-    currentAudio.addEventListener("loadedmetadata", onLoad);
-    currentAudio.addEventListener("error", onError);
+    currentAudio.addEventListener("load", loadingEnd);
+    currentAudio.addEventListener("canplay", loadingEnd);
+    currentAudio.addEventListener("canplaythrough", loadingEnd);
+    currentAudio.addEventListener("loadeddata", loadingEnd);
+    currentAudio.addEventListener("loadedmetadata", loadingEnd);
+    currentAudio.addEventListener("error", loadingEnd);
     currentAudio.addEventListener("timeupdate", timeupdate);
 
     return () => {
       container.removeEventListener("resize", setCanvasSize);
-      currentAudio.removeEventListener("load", onLoad);
-      currentAudio.removeEventListener("canplay", onLoad);
-      currentAudio.removeEventListener("canplaythrough", onLoad);
-      currentAudio.removeEventListener("loadeddata", onLoad);
-      currentAudio.removeEventListener("loadedmetadata", onLoad);
-      currentAudio.removeEventListener("error", onError);
+      currentAudio.removeEventListener("load", loadingEnd);
+      currentAudio.removeEventListener("canplay", loadingEnd);
+      currentAudio.removeEventListener("canplaythrough", loadingEnd);
+      currentAudio.removeEventListener("loadeddata", loadingEnd);
+      currentAudio.removeEventListener("loadedmetadata", loadingEnd);
+      currentAudio.removeEventListener("error", loadingEnd);
       currentAudio.removeEventListener("timeupdate", timeupdate);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -332,110 +315,104 @@ export default function AudioPlayer({ src }: Props) {
       width={{ base: "100%", sm: "75%", md: "65%", lg: "50%" }}
       aspectRatio={16 / 9}
     >
-      {!error ? (
-        <>
-          <canvas
-            ref={canvasRef}
-            onClick={async () => {
-              await toggleAudio();
-              if (!duration) setDuration(audio.current.duration);
+      <canvas
+        ref={canvasRef}
+        onClick={async () => {
+          await toggleAudio();
+          if (!duration) setDuration(audio.current.duration);
+        }}
+      />
+
+      <Box
+        className={`${styles.header} ${duration ? styles.show : ""}`}
+        fontSize={{ base: "12px", md: "16px" }}
+      >
+        <div>{parseTime(currentTime)}</div>
+        <div>{parseTime(duration)}</div>
+      </Box>
+
+      <div className={`${styles.track} ${duration ? styles.show : ""}`}>
+        <Slider.Root
+          transform={{ base: "", _hover: "scaleY(1.5)" }}
+          transitionProperty={"transform"}
+          transitionDuration={".5s"}
+          transitionDelay={{ base: "2s", _hover: "0s" }}
+          transitionTimingFunction={"ease-in-out"}
+          size={"sm"}
+          step={0.05}
+          value={[duration ? (currentTime / duration) * 100 : 0]}
+          onValueChange={seekingHandler}
+          cursor={"pointer"}
+        >
+          <Slider.Control>
+            <Slider.Track backgroundColor={"#00000035"}>
+              <Slider.Range />
+            </Slider.Track>
+          </Slider.Control>
+        </Slider.Root>
+        <div className={styles.volume}>
+          <Icon
+            size={{ base: "lg", md: "xl" }}
+            borderRadius={"50%"}
+            cursor={"pointer"}
+            padding={"5px"}
+            onClick={onToggle}
+            transition={".2s background-color ease-in-out"}
+            backgroundColor={{
+              base: "transparent",
+              _hover: "#ffffff25",
             }}
-          />
-
-          <Box
-            className={`${styles.header} ${duration ? styles.show : ""}`}
-            fontSize={{ base: "12px", md: "16px" }}
           >
-            <div>{parseTime(currentTime)}</div>
-            <div>{parseTime(duration)}</div>
-          </Box>
-
-          <div className={`${styles.track} ${duration ? styles.show : ""}`}>
-            <Slider.Root
-              transform={{ base: "", _hover: "scaleY(1.5)" }}
-              transitionProperty={"transform"}
-              transitionDuration={".5s"}
-              transitionDelay={{ base: "2s", _hover: "0s" }}
-              transitionTimingFunction={"ease-in-out"}
-              size={"sm"}
-              step={0.05}
-              value={[duration ? (currentTime / duration) * 100 : 0]}
-              onValueChange={seekingHandler}
-              cursor={"pointer"}
-            >
-              <Slider.Control>
-                <Slider.Track backgroundColor={"#00000035"}>
-                  <Slider.Range />
-                </Slider.Track>
-              </Slider.Control>
-            </Slider.Root>
-            <div className={styles.volume}>
+            {renderVolume()}
+          </Icon>
+          <Presence
+            present={openVolumeBar}
+            animationName={{ _open: "fade-in", _closed: "fade-out" }}
+            animationDuration="moderate"
+          >
+            <div className={styles.volumeBar}>
+              <Slider.Root
+                size={"sm"}
+                step={0.05}
+                value={[volume]}
+                cursor={"pointer"}
+                orientation="vertical"
+                onValueChange={changeVolumeHandler}
+              >
+                <Slider.Control>
+                  <Slider.Track backgroundColor={"#00000035"}>
+                    <Slider.Range />
+                  </Slider.Track>
+                </Slider.Control>
+              </Slider.Root>
               <Icon
                 size={{ base: "lg", md: "xl" }}
                 borderRadius={"50%"}
                 cursor={"pointer"}
                 padding={"5px"}
-                onClick={onToggle}
                 transition={".2s background-color ease-in-out"}
+                onClick={toggleMute}
                 backgroundColor={{
                   base: "transparent",
                   _hover: "#ffffff25",
                 }}
               >
-                {renderVolume()}
+                {volumeMuted.current ? <LuVolume2 /> : <LuVolumeOff />}
               </Icon>
-              <Presence
-                present={openVolumeBar}
-                animationName={{ _open: "fade-in", _closed: "fade-out" }}
-                animationDuration="moderate"
-              >
-                <div className={styles.volumeBar}>
-                  <Slider.Root
-                    size={"sm"}
-                    step={0.05}
-                    value={[volume]}
-                    cursor={"pointer"}
-                    orientation="vertical"
-                    onValueChange={changeVolumeHandler}
-                  >
-                    <Slider.Control>
-                      <Slider.Track backgroundColor={"#00000035"}>
-                        <Slider.Range />
-                      </Slider.Track>
-                    </Slider.Control>
-                  </Slider.Root>
-                  <Icon
-                    size={{ base: "lg", md: "xl" }}
-                    borderRadius={"50%"}
-                    cursor={"pointer"}
-                    padding={"5px"}
-                    transition={".2s background-color ease-in-out"}
-                    onClick={toggleMute}
-                    backgroundColor={{
-                      base: "transparent",
-                      _hover: "#ffffff25",
-                    }}
-                  >
-                    {volumeMuted.current ? <LuVolume2 /> : <LuVolumeOff />}
-                  </Icon>
-                </div>
-              </Presence>
             </div>
-          </div>
-          <Box
-            ref={stateEffect}
-            animationDuration={`${STATE_DURATION}ms`}
-            animationTimingFunction={"linear"}
-            className={styles.stateEffect}
-          >
-            <Icon boxSize={{ base: 75, md: 100 }}>
-              {isPlaying.current ? <LuCirclePlay /> : <LuCirclePause />}
-            </Icon>
-          </Box>
-        </>
-      ) : (
-        <Box>Error</Box>
-      )}
+          </Presence>
+        </div>
+      </div>
+      <Box
+        ref={stateEffect}
+        animationDuration={`${STATE_DURATION}ms`}
+        animationTimingFunction={"linear"}
+        className={styles.stateEffect}
+      >
+        <Icon boxSize={{ base: 75, md: 100 }}>
+          {isPlaying.current ? <LuCirclePlay /> : <LuCirclePause />}
+        </Icon>
+      </Box>
     </Box>
   );
 }

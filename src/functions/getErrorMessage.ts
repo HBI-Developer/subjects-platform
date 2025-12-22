@@ -1,7 +1,14 @@
 export default function getErrorMessage(code: number | string) {
-  let message = "";
+  let message = "",
+    codeNumber = 0;
 
-  switch (code) {
+  if (typeof code === "number") codeNumber = code;
+
+  switch (
+    typeof code === "number"
+      ? code
+      : code.toUpperCase().replaceAll(/[-_\s]/g, "_")
+  ) {
     case 100: {
       message = "العملية مستمرة";
       break;
@@ -90,11 +97,13 @@ export default function getErrorMessage(code: number | string) {
     case "INVALID_ARGUMENT":
     case "FAILED_PRECONDITION":
     case "OUT_OF_RANGE": {
+      codeNumber = 400;
       message = "طلب غير صالح";
       break;
     }
     case 401:
     case "UNAUTHENTICATED": {
+      codeNumber = 401;
       message = "الوصول غير مصرح به";
       break;
     }
@@ -104,11 +113,13 @@ export default function getErrorMessage(code: number | string) {
     }
     case 403:
     case "PERMISSION_DENIED": {
+      codeNumber = 403;
       message = "المورد محظور";
       break;
     }
     case 404:
     case "NOT_FOUND": {
+      codeNumber = 404;
       message = "المورد غير موجود";
       break;
     }
@@ -130,6 +141,7 @@ export default function getErrorMessage(code: number | string) {
     }
     case 409:
     case "ALREADY_EXISTS": {
+      codeNumber = 409;
       message = "المورد موجود مسبقاً";
       break;
     }
@@ -199,6 +211,7 @@ export default function getErrorMessage(code: number | string) {
     }
     case 429:
     case "RESOURCE_EXHAUSTED": {
+      codeNumber = 429;
       message = "تم إرسال طلبات كثيرة جداً";
       break;
     }
@@ -210,14 +223,24 @@ export default function getErrorMessage(code: number | string) {
       message = "غير متاح لأسباب قانونية";
       break;
     }
+
+    case 499:
+    case "CANCELLED": {
+      codeNumber = 499;
+      message = "تم إلغاء الطلب قبل إكتماله";
+      break;
+    }
+
     case 500:
     case "INTERNAL":
     case "DATA_LOSS": {
+      codeNumber = 500;
       message = "خطأ داخلي في الخادم";
       break;
     }
     case 501:
     case "UNIMPLEMENTED": {
+      codeNumber = 501;
       message = "هذه الميزة غير مدعومة";
       break;
     }
@@ -227,11 +250,13 @@ export default function getErrorMessage(code: number | string) {
     }
     case 503:
     case "UNAVAILABLE": {
-      message = "الخدمة غير متوفرة";
+      codeNumber = 503;
+      message = "الخدمة غير متوفرة أو ﻻ يمكن الوصول إليها";
       break;
     }
     case 504:
     case "DEADLINE_EXCEEDED": {
+      codeNumber = 504;
       message = "انتهاء وقت البوابة";
       break;
     }
@@ -260,20 +285,17 @@ export default function getErrorMessage(code: number | string) {
       break;
     }
 
-    case "CANCELLED": {
-      message = "تم إلغاء الطلب قبل إكتماله";
-      break;
-    }
-
     case "ABORTED": {
+      codeNumber = 409;
       message = "تم إيقاف العملية بسبب تضاربها مع عملية أخرى";
       break;
     }
 
     default: {
+      if (typeof code !== "number") codeNumber = 500;
       message = "حدث خطأ غير معروف، رجاءً أعد المحاولة";
     }
   }
 
-  return message;
+  return { code: codeNumber, message };
 }

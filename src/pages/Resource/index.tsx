@@ -1,5 +1,6 @@
 import { AudioPlayer, Carousel, PDFViewer, VideoPlayer } from "@/components";
 import getErrorMessage from "@/functions/getErrorMessage";
+import verifyResources from "@/functions/verifyResources";
 import type { RootState } from "@/store";
 import { setResourceLoading } from "@/store/slice/loading";
 import {
@@ -36,42 +37,37 @@ const resource = createOverlay<Props>(
       [component, setComponent] = useState<React.JSX.Element>(<></>),
       isStart = useRef(false),
       setContent = () => {
-        if (type === "images") {
-          setComponent(
-            //@ts-expect-error the passed array with the valid type
-            <Carousel resources={resources} errors={errors.current} />
-          );
-        } else {
-          if (errors.current.length) {
-            setComponent(
-              <Center
-                width={{ base: "100%", sm: "75%", md: "65%", lg: "50%" }}
-                aspectRatio={16 / 9}
-                flexDirection={"column"}
-                rowGap={"5px"}
-                backgroundColor={"bg"}
-                marginInline={"auto"}
-              >
-                <Heading>{errors.current[0][0]}</Heading>
-                <Text>{getErrorMessage(errors.current[0][0])}</Text>
-              </Center>
-            );
+        if (errors.current.length) {
+          const { code, message } = getErrorMessage(errors.current[0][0]);
 
-            dispatch(setResourceLoading(false));
-          } else {
-            switch (type) {
-              case "pdf": {
-                setComponent(<PDFViewer src={resources[0]} />);
-                break;
-              }
-              case "audio": {
-                setComponent(<AudioPlayer src={resources[0]} />);
-                break;
-              }
-              case "video": {
-                setComponent(<VideoPlayer src={resources[0]} />);
-                break;
-              }
+          setComponent(
+            <Center
+              width={{ base: "100%", sm: "75%", md: "65%", lg: "50%" }}
+              aspectRatio={16 / 9}
+              flexDirection={"column"}
+              rowGap={"5px"}
+              backgroundColor={"bg"}
+              marginInline={"auto"}
+            >
+              <Heading>{code}</Heading>
+              <Text>{message}</Text>
+            </Center>
+          );
+
+          dispatch(setResourceLoading(false));
+        } else {
+          switch (type) {
+            case "pdf": {
+              setComponent(<PDFViewer src={resources[0]} />);
+              break;
+            }
+            case "audio": {
+              setComponent(<AudioPlayer src={resources[0]} />);
+              break;
+            }
+            case "video": {
+              setComponent(<VideoPlayer src={resources[0]} />);
+              break;
             }
           }
         }
@@ -80,28 +76,35 @@ const resource = createOverlay<Props>(
     useEffect(() => {
       if (isStart.current) return;
       isStart.current = true;
-      const srcset = type === "images" ? resources : [resources[0]];
+      if (type === "images") {
+        setComponent(<Carousel resources={resources} />);
+      } else {
+        const src = resources[0];
+        verifyResources(type, [src]).then(async (codes) => {
+          if (codes[0].status === 0) {
+            try {
+              const resource = await fetch(src);
 
-      srcset.forEach(async (src, index) => {
-        try {
-          const resource = await fetch(src);
+              console.log(resource.status);
 
-          if (!resource.ok) {
-            if (type === "images")
-              errors.current.push([index, resource.status]);
-            else errors.current.push([resource.status]);
+              if (!resource.ok) {
+                errors.current.push([resource.status]);
 
-            return;
+                return;
+              }
+            } catch (_) {
+              errors.current.push([500]);
+            } finally {
+              setTimeout(() => {
+                setContent();
+              }, 50);
+            }
+          } else {
+            setContent();
           }
-        } catch (_) {
-          if (type === "images") errors.current.push([index, 500]);
-          else errors.current.push([500]);
-        } finally {
-          setTimeout(() => {
-            if (index === srcset.length - 1) setContent();
-          }, 50);
-        }
-      });
+        });
+      }
+
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

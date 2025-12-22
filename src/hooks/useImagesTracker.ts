@@ -21,26 +21,29 @@ export default function useImagesTracker() {
 
     [].forEach.call(images.current, (image: HTMLImageElement) => {
       const onFinish = () => {
-        increaseCounter(image.src);
-      };
-      if (image.complete) onFinish();
-      else {
-        image.addEventListener("load", onFinish);
-        image.addEventListener("loadeddata", onFinish);
-        image.addEventListener("loadedmetadata", onFinish);
-        image.addEventListener("error", async () => {
+          increaseCounter(image.src);
+        },
+        onError = async () => {
           const error = { image, code: 0, url: image.src };
-          onFinish();
           try {
             const url = await fetch(image.src);
-
             error.code = url.status;
           } catch (_) {
             error.code = 500;
           }
 
+          onFinish();
           setFailures((prev) => [...prev, error]);
-        });
+        };
+
+      if (image.complete) {
+        if (image.naturalHeight && image.naturalWidth) onFinish();
+        else onError();
+      } else {
+        image.addEventListener("load", onFinish);
+        image.addEventListener("loadeddata", onFinish);
+        image.addEventListener("loadedmetadata", onFinish);
+        image.addEventListener("error", onError);
       }
     });
   }, []);

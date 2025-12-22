@@ -17,7 +17,8 @@ import {
   collection,
   doc,
   FirestoreError,
-  getDocs,
+  getDocsFromCache,
+  getDocsFromServer,
   query,
   where,
 } from "firebase/firestore";
@@ -42,6 +43,9 @@ export default function Resources() {
     [resources, setResources] = useState<Array<ResourceInterface>>([]),
     [error, setError] = useState<number | string>(0),
     fetchResource = async () => {
+      const CACHE_KEY = `last_fetch_res_${subject.id}`;
+      const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
       try {
         const resourcesCollection = collection(db, "resources");
         const subjectRef = doc(db, "subjects", subject.id);
@@ -49,17 +53,36 @@ export default function Resources() {
           resourcesCollection,
           where("subject", "==", subjectRef)
         );
-        const querySnapshot = await getDocs(q);
+
+        const lastFetch = localStorage.getItem(CACHE_KEY);
+        const now = Date.now();
+
+        let querySnapshot;
+        const isDataFresh = lastFetch && now - parseInt(lastFetch) < ONE_DAY_MS;
+
+        if (isDataFresh) {
+          try {
+            querySnapshot = await getDocsFromCache(q);
+            if (querySnapshot.empty) throw new Error("Cache empty");
+          } catch (_) {
+            querySnapshot = await getDocsFromServer(q);
+            localStorage.setItem(CACHE_KEY, now.toString());
+          }
+        } else {
+          querySnapshot = await getDocsFromServer(q);
+          localStorage.setItem(CACHE_KEY, now.toString());
+        }
+
         const data = querySnapshot.docs.map((doc) => {
-          const data = {
+          const docData = {
             id: doc.id,
             ...doc.data(),
           };
 
           //@ts-expect-error false data type
-          delete data.subject;
+          delete docData.subject;
 
-          return data;
+          return docData;
         }) as Array<ResourceInterface>;
 
         setResources(data);
@@ -118,7 +141,7 @@ export default function Resources() {
         alignItems={"center"}
         userSelect={"none"}
         cursor={"pointer"}
-        zIndex={5}
+        zIndex={7}
         alignSelf={"flex-start"}
         onClick={() => navigate(2.5, 1.5)}
         transition={".2s color ease-in-out"}

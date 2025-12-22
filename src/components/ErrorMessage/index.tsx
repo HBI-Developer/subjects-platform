@@ -15,8 +15,9 @@ interface Props {
   retry: () => void;
 }
 
-export default function ErrorMessage({ code, retry }: Props) {
-  const color = useSelector((state: RootState) => state.color.value);
+export default function ErrorMessage({ code: errorCode, retry }: Props) {
+  const color = useSelector((state: RootState) => state.color.value),
+    { code, message } = getErrorMessage(errorCode);
 
   return (
     <Center
@@ -39,7 +40,7 @@ export default function ErrorMessage({ code, retry }: Props) {
           size={"md"}
           color={"white"}
         />
-        <Text>{getErrorMessage(code)}</Text>
+        <Text>{message}</Text>
       </HStack>
       <Button
         colorPalette={color}

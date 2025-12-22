@@ -6,13 +6,13 @@ import { Box, Center, Heading, Image, Text } from "@chakra-ui/react";
 import { useDispatch } from "react-redux";
 import { setResourceLoading } from "@/store/slice/loading";
 import getErrorMessage from "@/functions/getErrorMessage";
+import useImagesTracker from "@/hooks/useImagesTracker";
 
 interface Props {
   resources: Array<string>;
-  errors?: Array<[number, number]>;
 }
 
-export default function Carousel({ resources, errors = [] }: Props) {
+export default function Carousel({ resources }: Props) {
   const { isMobile, isVertical, isTablet } = useScreenState();
   const dispatch = useDispatch();
   const settings = {
@@ -33,41 +33,49 @@ export default function Carousel({ resources, errors = [] }: Props) {
           ? 2
           : 3,
     },
-    onReady = () => {
-      dispatch(setResourceLoading(false));
-    };
+    { tracker, isLoaded, failures } = useImagesTracker();
 
   return (
-    <Slider {...settings} onInit={onReady}>
-      {resources.map((resource, index) => {
-        const error = errors.find((v) => v[0] === index);
-        return (
-          <Box
-            aspectRatio={4 / 3}
-            paddingInline={"10px"}
-            _focus={{ outline: "none" }}
-          >
-            {error ? (
-              <Center
-                boxSize={"100%"}
-                flexDirection={"column"}
-                rowGap={"5px"}
-                backgroundColor={"bg"}
-              >
-                <Heading>{error[1]}</Heading>
-                <Text>{getErrorMessage(error[1])}</Text>
-              </Center>
-            ) : (
-              <Image
-                boxSize={"100%"}
-                objectFit={"contain"}
-                backgroundColor={"#000"}
-                src={resource}
-              />
-            )}
-          </Box>
-        );
-      })}
-    </Slider>
+    <Box ref={tracker}>
+      <Slider {...settings}>
+        {resources.map((resource, index) => {
+          const image = failures.find((f) => f.url === resource),
+            { code, message } = getErrorMessage(image?.code || 500);
+
+          if (isLoaded && index === resources.length - 1) {
+            setTimeout(() => {
+              dispatch(setResourceLoading(false));
+            }, 200);
+          }
+
+          return (
+            <Box
+              aspectRatio={4 / 3}
+              paddingInline={"10px"}
+              _focus={{ outline: "none" }}
+            >
+              {image ? (
+                <Center
+                  boxSize={"100%"}
+                  flexDirection={"column"}
+                  rowGap={"5px"}
+                  backgroundColor={"bg"}
+                >
+                  <Heading>{code}</Heading>
+                  <Text>{message}</Text>
+                </Center>
+              ) : (
+                <Image
+                  boxSize={"100%"}
+                  objectFit={"contain"}
+                  backgroundColor={"#000"}
+                  src={resource}
+                />
+              )}
+            </Box>
+          );
+        })}
+      </Slider>
+    </Box>
   );
 }
