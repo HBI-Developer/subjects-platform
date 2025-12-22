@@ -14,7 +14,7 @@
 body {
   overflow: hidden;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   --sb-track-color: #181818;
   --sb-thumb-color: #6baf8d;
   --sb-size: 8px;

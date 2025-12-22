@@ -130,7 +130,6 @@ export default function Resources() {
       rowGap={"15px"}
       h={"100%"}
       p={"1rem"}
-      paddingBottom={"5rem"}
       paddingRight={{ base: "1rem", md: "1.2rem" }}
       className="custom-scroll"
       position={"relative"}
