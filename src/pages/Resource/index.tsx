@@ -19,7 +19,11 @@ import {
 } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
 import { TbExternalLink } from "react-icons/tb";
+import { MdFileDownload } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
+import { toaster } from "@/components/ui/toaster";
 
 interface Props {
   title: string;
@@ -69,6 +73,61 @@ const resource = createOverlay<Props>(
               setComponent(<VideoPlayer src={resources[0]} />);
               break;
             }
+          }
+        }
+      },
+      download = async () => {
+        if (resources.length > 1 && type === "images") {
+          const zip = new JSZip();
+
+          try {
+            let counter = 0;
+            const promises = resources.map(async (url, index) => {
+              const response = await fetch(url);
+
+              if (!response.ok) {
+                counter++;
+                return;
+              }
+
+              const blob = await response.blob();
+
+              const fileName =
+                url.substring(url.lastIndexOf("/") + 1) || `image-${index}.jpg`;
+
+              zip.file(fileName, blob);
+            });
+
+            await Promise.all(promises);
+
+            const zipBlob = await zip.generateAsync({ type: "blob" });
+            saveAs(
+              new File([zipBlob], `${title}.zip`, { type: "application/zip" })
+            );
+
+            toaster.create({
+              description: "بدء التحميل بنجاح!",
+              type: "success",
+            });
+
+            if (counter > 0) {
+              if (counter === resources.length) {
+                toaster.create({
+                  description: `فشل تحميل جميع الصور، رجاءً قم بإعادة المحاولة إذا كان ممكناً.`,
+                  type: "error",
+                });
+              } else {
+                toaster.create({
+                  description: `فشل تحميل بعض الصور.`,
+                  type: "error",
+                });
+              }
+            }
+          } catch (_) {
+            toaster.create({
+              description: `حدث خطأ في عملية التحميل، أعد المحاولة رجاءً`,
+              type: "error",
+            });
           }
         }
       };
@@ -123,16 +182,20 @@ const resource = createOverlay<Props>(
                   columnGap={"15px"}
                 >
                   <Button
-                    variant="outline"
                     size={{ base: "xs", md: "sm" }}
-                    as={Link}
+                    as={type === "images" ? Text : Link}
+                    variant="outline"
                     //@ts-expect-error target is working here
                     target="_blank"
                     href={resources[0]}
-                    visibility={type === "images" ? "hidden" : "visible"}
+                    onClick={type === "images" ? download : () => {}}
                     colorPalette={color}
                   >
-                    <TbExternalLink />
+                    {type === "images" ? (
+                      <MdFileDownload />
+                    ) : (
+                      <TbExternalLink />
+                    )}
                   </Button>
                   <Dialog.Title color={color}>{title}</Dialog.Title>
                   <Dialog.CloseTrigger asChild position={"static"}>

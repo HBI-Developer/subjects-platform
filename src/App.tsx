@@ -18,6 +18,7 @@ import { Page } from "./components";
 import { setScope } from "./store/slice/scope";
 import { useEffect } from "react";
 import toPage from "./functions/toPage";
+import { Toaster } from "./components/ui/toaster";
 
 function App() {
   const color = useSelector((state: RootState) => state.color.value),
@@ -92,6 +93,7 @@ function App() {
         </Presence>
         <Resource.Viewport />
       </Box>
+      <Toaster />
     </Grid>
   );
 }
