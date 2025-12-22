@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "subjects-platform"
-  }
+    "default": "subjects-platform",
+    "subjects-platform": "subjects-platform"
+  },
+  "targets": {},
+  "etags": {}
 }

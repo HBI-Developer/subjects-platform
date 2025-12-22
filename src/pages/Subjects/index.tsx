@@ -82,6 +82,7 @@ export default function Subjects() {
       rowGap={"15px"}
       h={"100%"}
       p={"1rem"}
+      paddingBottom={"5rem"}
       position={"relative"}
       className="custom-scroll"
       overflowY={loading ? "hidden" : "auto"}
