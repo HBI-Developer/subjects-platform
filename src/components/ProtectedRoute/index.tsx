@@ -1,16 +1,39 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { auth } from "@/firebase-config";
-import { ADMIN_PAGE } from "@/constants";
+import { auth, db } from "@/firebase-config";
+import { doc, getDoc } from "firebase/firestore";
+import { useEffect, useState } from "react";
 
 const ProtectedRoute = () => {
-  const [user, loading] = useAuthState(auth);
+  const [user, loading] = useAuthState(auth),
+    [isAdmin, setIsAdmin] = useState<boolean | null>(null),
+    navigate = useNavigate();
 
-  if (loading) return <div>جاري التحقق من الصلاحيات...</div>;
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (user?.email) {
+        const adminRef = doc(db, "admins", user.email);
+        const adminSnap = await getDoc(adminRef);
+        setIsAdmin(adminSnap.exists());
+      } else {
+        setIsAdmin(false);
+      }
+    };
 
-  if (!user || ![""].includes(user.email!)) {
-    return <Navigate to={ADMIN_PAGE} replace />;
-  }
+    if (!loading) {
+      checkAdminStatus();
+    }
+  }, [user, loading]);
+
+  useEffect(() => {
+    if (typeof isAdmin === "boolean") {
+      if (!user || !isAdmin) {
+        navigate("/");
+      }
+    }
+  }, [isAdmin, user, navigate]);
+
+  if (loading) return <div />;
 
   return <Outlet />;
 };

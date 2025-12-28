@@ -13,27 +13,12 @@ import {
 } from "react-icons/tb";
 import { useDispatch, useSelector } from "react-redux";
 import { Resource } from "..";
-import {
-  collection,
-  doc,
-  FirestoreError,
-  getDocsFromCache,
-  getDocsFromServer,
-  query,
-  where,
-} from "firebase/firestore";
-import { db } from "@/firebase-config";
+import { FirestoreError } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { setMainLoading, setResourceLoading } from "@/store/slice/loading";
 import { setScope } from "@/store/slice/scope";
 import { NAVIGATION_DURATION } from "@/constants";
-
-interface ResourceInterface {
-  id: string;
-  type: ResourceType;
-  title: string;
-  resources: Array<string>;
-}
+import getResources from "@/functions/getResources";
 
 export default function Resources() {
   const color = useSelector((state: RootState) => state.color.value),
@@ -42,57 +27,21 @@ export default function Resources() {
     dispatch = useDispatch(),
     [resources, setResources] = useState<Array<ResourceInterface>>([]),
     [error, setError] = useState<number | string>(0),
-    fetchResource = async () => {
-      const CACHE_KEY = `last_fetch_res_${subject.id}`;
-      const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-
-      try {
-        const resourcesCollection = collection(db, "resources");
-        const subjectRef = doc(db, "subjects", subject.id);
-        const q = query(
-          resourcesCollection,
-          where("subject", "==", subjectRef)
-        );
-
-        const lastFetch = localStorage.getItem(CACHE_KEY);
-        const now = Date.now();
-
-        let querySnapshot;
-        const isDataFresh = lastFetch && now - parseInt(lastFetch) < ONE_DAY_MS;
-
-        if (isDataFresh) {
-          try {
-            querySnapshot = await getDocsFromCache(q);
-            if (querySnapshot.empty) throw new Error("Cache empty");
-          } catch (_) {
-            querySnapshot = await getDocsFromServer(q);
-            localStorage.setItem(CACHE_KEY, now.toString());
-          }
-        } else {
-          querySnapshot = await getDocsFromServer(q);
-          localStorage.setItem(CACHE_KEY, now.toString());
+    fetchResource = () => {
+      getResources(
+        subject.id,
+        (data) => {
+          setResources(data);
+        },
+        (er) => {
+          const error = er as FirestoreError;
+          setError(error.code);
+        },
+        () => {
+          dispatch(setMainLoading(false));
+          dispatch(setScope(3));
         }
-
-        const data = querySnapshot.docs.map((doc) => {
-          const docData = {
-            id: doc.id,
-            ...doc.data(),
-          };
-
-          //@ts-expect-error false data type
-          delete docData.subject;
-
-          return docData;
-        }) as Array<ResourceInterface>;
-
-        setResources(data);
-      } catch (er) {
-        const error = er as FirestoreError;
-        setError(error.code);
-      } finally {
-        dispatch(setMainLoading(false));
-        dispatch(setScope(3));
-      }
+      );
     },
     getIcon = (type: ResourceType) => {
       switch (type) {

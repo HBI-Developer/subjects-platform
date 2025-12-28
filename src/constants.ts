@@ -12,8 +12,8 @@ export const COLORS = [
   "white",
 ] as const;
 
-export const ADMIN_PAGE = "/admin-login";
+export const ADMIN_PAGE = "/login";
 
-export const DASHBOARD_PAGE = "/dashboard-secret-zone/*";
+export const DASHBOARD_PAGE = "/dashboard-secret-zone";
 
 export const NAVIGATION_DURATION = 250;
