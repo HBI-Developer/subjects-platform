@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import colorSlice from "./slice/color";
 import scopeSlice from "./slice/scope";
 import loadingSlice from "./slice/loading";
+import counterSlice from "./slice/counter";
 import identifierSlice from "./slice/identifier";
 
 export const store = configureStore({
@@ -10,6 +11,7 @@ export const store = configureStore({
     scope: scopeSlice,
     loading: loadingSlice,
     identifier: identifierSlice,
+    counter: counterSlice
   },
 });
 

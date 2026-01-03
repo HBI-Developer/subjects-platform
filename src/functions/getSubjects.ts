@@ -6,7 +6,7 @@ import {
 } from "firebase/firestore";
 
 export default async function getSubjects(
-  successCallback: (data: Array<Subject>) => void,
+  successCallback: (data: Array<SubjectInterface>) => void,
   errorCallback: (er: unknown) => void,
   finallyCallback: () => void
 ) {
@@ -37,7 +37,7 @@ export default async function getSubjects(
     const data = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
-    })) as Array<Subject>;
+    })) as Array<SubjectInterface>;
 
     successCallback(data);
   } catch (er) {

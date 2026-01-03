@@ -20,7 +20,6 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { TbExternalLink } from "react-icons/tb";
 import { MdFileDownload } from "react-icons/md";
-import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
@@ -174,7 +173,7 @@ const resource = createOverlay<Props>(
             <Dialog.Content dir="rtl" minH={"100%"} h={"auto"}>
               <Dialog.Header userSelect={"none"}>
                 <Grid
-                  templateColumns={"auto auto 1fr auto"}
+                  templateColumns={"auto 1fr auto"}
                   w={"100%"}
                   alignItems={"center"}
                   justifyItems={"center"}
@@ -195,14 +194,6 @@ const resource = createOverlay<Props>(
                     ) : (
                       <TbExternalLink />
                     )}
-                  </Button>
-                  <Button
-                    size={{ base: "xs", md: "sm" }}
-                    variant="outline"
-                    transform="rotateY(180deg)"
-                    colorPalette={color}
-                  >
-                    <IoChatbubbleEllipsesOutline />
                   </Button>
                   <Dialog.Title color={color}>{title}</Dialog.Title>
                   <Dialog.CloseTrigger asChild position={"static"}>

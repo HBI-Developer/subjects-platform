@@ -1,7 +1,7 @@
 declare global {
   type ResourceType = "pdf" | "images" | "audio" | "video";
 
-  interface Subject {
+  interface SubjectInterface {
     id: string;
     icon: string;
     title: string;

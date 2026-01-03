@@ -13,7 +13,7 @@ import { NAVIGATION_DURATION } from "@/constants";
 import getSubjects from "@/functions/getSubjects";
 
 export default function Subjects() {
-  const [subjects, setSubjects] = useState<Array<Subject>>([]),
+  const [subjects, setSubjects] = useState<Array<SubjectInterface>>([]),
     [error, setError] = useState<number | string>(0),
     loading = useSelector((state: RootState) => state.loading.main),
     dispatch = useDispatch();

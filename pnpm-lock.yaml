@@ -65,6 +65,9 @@ importers:
       file-saver:
         specifier: ^2.0.5
         version: 2.0.5
+      firebase:
+        specifier: ^12.7.0
+        version: 12.7.0
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
@@ -7021,7 +7024,7 @@ snapshots:
   websocket-driver@0.7.4:
     dependencies:
       http-parser-js: 0.5.10
-      safe-buffer: 5.1.2
+      safe-buffer: 5.2.1
       websocket-extensions: 0.1.4
 
   websocket-extensions@0.1.4: {}
