@@ -5,6 +5,7 @@ declare global {
     id: string;
     icon: string;
     title: string;
+    createdTime: number;
   }
 
   interface ResourceInterface {

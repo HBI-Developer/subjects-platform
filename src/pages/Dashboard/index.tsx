@@ -16,13 +16,20 @@ import {
 import { IoMdExit } from "react-icons/io";
 import { FaPlus } from "react-icons/fa6";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { Subject } from "./components";
+import {
+  IconSelector,
+  ResourceDialog,
+  Subject,
+  SubjectDeleteConfirm,
+} from "./components";
 import { useEffect, useState } from "react";
 import type { FirestoreError } from "firebase/firestore";
 import getSubjects from "@/functions/getSubjects";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
 import getErrorMessage from "@/functions/getErrorMessage";
+import { SubjectDialog } from "./components";
+import { Toaster } from "@/components/ui/toaster";
 
 export default function Dashboard() {
   const [user] = useAuthState(auth),
@@ -109,6 +116,17 @@ export default function Dashboard() {
             size={{ base: "sm", md: "md" }}
             colorPalette={"purple"}
             borderRadius={"20px"}
+            onClick={() => {
+              SubjectDialog.open("subjectDialog", {
+                type: "add",
+                setSubject: (id, title, icon, createdTime) => {
+                  setSubjects((subjects) => [
+                    ...subjects,
+                    { id, title, icon, createdTime },
+                  ]);
+                },
+              });
+            }}
           >
             <FaPlus />
             <Text>إضافة مادة جديدة</Text>
@@ -163,6 +181,20 @@ export default function Dashboard() {
                 title={subject.title}
                 id={subject.id}
                 icon={subject.icon}
+                onDelete={() => {
+                  SubjectDeleteConfirm.open("deleteSubject", {
+                    id: subject.id,
+                    title: subject.title,
+                    onSuccess: () => {
+                      console.log(JSON.stringify(subjects));
+                      console.log(subject.id);
+
+                      setSubjects((subjects) =>
+                        subjects.filter(({ id }) => id !== subject.id)
+                      );
+                    },
+                  });
+                }}
               />
             ))}
           </Grid>
@@ -185,6 +217,11 @@ export default function Dashboard() {
           <Spinner size={"lg"} borderWidth="3px" colorPalette={"gray"} />
         </Center>
       </Presence>
+      <SubjectDialog.Viewport />
+      <IconSelector.Viewport />
+      <SubjectDeleteConfirm.Viewport />
+      <ResourceDialog.Viewport />
+      <Toaster />
     </>
   );
 }
