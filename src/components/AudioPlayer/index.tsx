@@ -26,15 +26,17 @@ interface Props {
 }
 
 const GRADIENT_COLORS = [
-    "#F4443E",
-    "#EC4F7A",
-    "#9F5AB0",
-    "#6B59B7",
-    "#4156B5",
-    "#1565C0",
-    "#1B695D",
-    "#F4813D",
-    "#E64D3A",
+    "#EF5350",
+    "#FFA726",
+    "#FFEE58",
+    "#66BB6A",
+    "#26A69A",
+    "#42A5F5",
+    "#26A69A",
+    "#66BB6A",
+    "#FFEE58",
+    "#FFA726",
+    "#EF5350",
   ],
   GRADIENT_MOVE_SPEED = 2,
   PERCENT = 5000,
@@ -287,6 +289,7 @@ export default function AudioPlayer({ src }: Props) {
       currentAudio.removeEventListener("loadedmetadata", loadingEnd);
       currentAudio.removeEventListener("error", loadingEnd);
       currentAudio.removeEventListener("timeupdate", timeupdate);
+      currentAudio.pause();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

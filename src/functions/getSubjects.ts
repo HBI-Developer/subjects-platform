@@ -3,6 +3,8 @@ import {
   collection,
   getDocsFromCache,
   getDocsFromServer,
+  orderBy,
+  query,
 } from "firebase/firestore";
 
 export default async function getSubjects(
@@ -15,6 +17,7 @@ export default async function getSubjects(
 
   try {
     const subjectsCollection = collection(db, "subjects"),
+      q = query(subjectsCollection, orderBy("createdTime", "asc")),
       lastFetch = localStorage.getItem(CACHE_KEY),
       now = Date.now(),
       isDataFresh = lastFetch && now - parseInt(lastFetch) < ONE_DAY_MS;
@@ -23,14 +26,14 @@ export default async function getSubjects(
 
     if (isDataFresh) {
       try {
-        snapshot = await getDocsFromCache(subjectsCollection);
+        snapshot = await getDocsFromCache(q);
         if (snapshot.empty) throw new Error("Cache empty");
       } catch (_) {
-        snapshot = await getDocsFromServer(subjectsCollection);
+        snapshot = await getDocsFromServer(q);
         localStorage.setItem(CACHE_KEY, now.toString());
       }
     } else {
-      snapshot = await getDocsFromServer(subjectsCollection);
+      snapshot = await getDocsFromServer(q);
       localStorage.setItem(CACHE_KEY, now.toString());
     }
 

@@ -4,6 +4,7 @@ import {
   doc,
   getDocsFromCache,
   getDocsFromServer,
+  orderBy,
   query,
   where,
 } from "firebase/firestore";
@@ -20,7 +21,11 @@ export default async function getResources(
   try {
     const resourcesCollection = collection(db, "resources"),
       subjectRef = doc(db, "subjects", subjectId),
-      q = query(resourcesCollection, where("subject", "==", subjectRef)),
+      q = query(
+        resourcesCollection,
+        where("subject", "==", subjectRef),
+        orderBy("createdTime", "asc")
+      ),
       lastFetch = localStorage.getItem(CACHE_KEY),
       now = Date.now(),
       isDataFresh = lastFetch && now - parseInt(lastFetch) < ONE_DAY_MS;
