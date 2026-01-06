@@ -72,11 +72,13 @@ const SwitchRoot = ({ children }: SwitchRootProps) => {
   if (!contentToRender) return null;
 
   if (layoutComponent) {
-    const { children: wrapper, withDefault = false } =
-      layoutComponent.props as SwitchLayoutProps;
+    const { children: wrapper, withDefault = false } = (
+      layoutComponent as ReactElement
+    ).props as SwitchLayoutProps;
     const shouldWrap = !isDefaultContent || (isDefaultContent && withDefault);
 
     if (shouldWrap && isValidElement(wrapper)) {
+      // @ts-expect-error non-understand error
       return cloneElement(wrapper, { children: contentToRender });
     }
   }
