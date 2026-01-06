@@ -1,5 +1,6 @@
 export { default as Dashboard } from "./Dashboard";
 export { default as Login } from "./Login";
+export { default as Page404 } from "./Page404";
 export { default as Resource } from "./Resource";
 export { default as Resources } from "./Resources";
 export { default as Subjects } from "./Subjects";

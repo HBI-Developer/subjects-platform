@@ -40,40 +40,40 @@ export default function Subject({
 }: Props) {
   const scrollStyle = useBreakpointValue({ base: "", md: styles.scrollbar }),
     [title, setTitle] = useState(initialTitle),
+    [resources, setResources] = useState<Array<ResourceInterface>>([]),
     [icon, setIcon] = useState(initialIcon),
-    [resourcesCount, setResourcesCount] = useState<number | string>(0),
+    [resourcesCount, setResourcesCount] = useState<number>(0),
     [countError, setCountError] = useState<number | string>(0),
+    resourcesCountInWord = (count: number) => {
+      switch (true) {
+        case count === 0: {
+          return "ﻻ توجد مصادر";
+        }
+
+        case count === 1: {
+          return "مصدر واحد";
+        }
+
+        case count === 2: {
+          return "مصدران";
+        }
+
+        case count > 2 && count < 11: {
+          return `${count} مصادر`;
+        }
+
+        default: {
+          return `${count} مصدر`;
+        }
+      }
+    },
     dispatch = useDispatch();
 
   useEffect(() => {
     getResourcesCount(
       id,
       (count) => {
-        switch (true) {
-          case count === 0: {
-            setResourcesCount(0);
-            break;
-          }
-
-          case count === 1: {
-            setResourcesCount("مصدر واحد");
-            break;
-          }
-
-          case count === 2: {
-            setResourcesCount("مصدران");
-            break;
-          }
-
-          case count > 2 && count < 11: {
-            setResourcesCount(`${count} مصادر`);
-            break;
-          }
-
-          default: {
-            setResourcesCount(`${count} مصدر`);
-          }
-        }
+        setResourcesCount(count);
       },
       (er: unknown) => {
         const error = er as FirebaseError;
@@ -127,9 +127,7 @@ export default function Subject({
           >
             {countError
               ? "حدث خطأ في جلب العدد"
-              : resourcesCount !== 0
-              ? resourcesCount
-              : "ﻻ توجد مصادر"}
+              : resourcesCountInWord(resourcesCount)}
           </Text>
         </VStack>
         <Menu.Root>
@@ -153,7 +151,7 @@ export default function Subject({
                     colorPalette={"teal"}
                     onClick={() => {
                       SubjectDialog.open("subjectDialog", {
-                        type: "edit",
+                        process: "edit",
                         title: title,
                         icon: icon,
                         id,
@@ -198,7 +196,13 @@ export default function Subject({
         className={scrollStyle}
         css={{ "& > *:not(:last-child)": { marginBottom: "10px" } }}
       >
-        <SubjectBody id={id} resourcesCount={resourcesCount} />
+        <SubjectBody
+          id={id}
+          resourcesCount={resourcesCount}
+          resources={resources}
+          setResources={setResources}
+          setResourcesCount={setResourcesCount}
+        />
       </Box>
       <Separator borderColor={"purple.800"} />
       <Box padding={".5rem 1rem"}>
@@ -210,6 +214,17 @@ export default function Subject({
           onClick={() => {
             ResourceDialog.open("resourceDialog", {
               process: "add",
+              subjectId: id,
+              setResource: (id, type, title, thisResources, createdTime) => {
+                if (resourcesCount === 0 || resources.length) {
+                  setResources((resources) => [
+                    ...resources,
+                    { id, type, title, resources: thisResources, createdTime },
+                  ]);
+                }
+
+                setResourcesCount((count) => count + 1);
+              },
             });
           }}
         >

@@ -1,6 +1,6 @@
 import { Box, Show } from "@chakra-ui/react";
 import ReactPlayer from "react-player";
-import isPlatform from "./functions/isPlatform";
+import isPlatformVideo from "@/helpers/isPlatformVideo";
 import Plyr from "plyr-react";
 import "plyr-react/plyr.css";
 import { useDispatch } from "react-redux";
@@ -11,7 +11,7 @@ interface Props {
 }
 
 export default function VideoPlayer({ src }: Props) {
-  const platform = isPlatform(src),
+  const platform = isPlatformVideo(src),
     dispatch = useDispatch(),
     onReady = () => {
       dispatch(setResourceLoading(false));

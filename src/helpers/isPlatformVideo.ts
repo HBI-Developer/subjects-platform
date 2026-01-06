@@ -1,4 +1,4 @@
-const isPlatform = (url: string) => {
+const isPlatformVideo = (url: string) => {
   const platformPatterns = [
       [/youtube\.com/, "youtube"],
       [/youtu\.be/, "youtube"],
@@ -17,4 +17,4 @@ const isPlatform = (url: string) => {
   return result;
 };
 
-export default isPlatform;
+export default isPlatformVideo;

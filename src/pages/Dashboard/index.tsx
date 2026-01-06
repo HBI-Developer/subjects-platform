@@ -18,6 +18,7 @@ import { FaPlus } from "react-icons/fa6";
 import { useAuthState } from "react-firebase-hooks/auth";
 import {
   IconSelector,
+  ResourceDeleteConfirm,
   ResourceDialog,
   Subject,
   SubjectDeleteConfirm,
@@ -30,15 +31,19 @@ import type { RootState } from "@/store";
 import getErrorMessage from "@/functions/getErrorMessage";
 import { SubjectDialog } from "./components";
 import { Toaster } from "@/components/ui/toaster";
+import { signOut } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const [user] = useAuthState(auth),
     [subjects, setSubjects] = useState<Array<SubjectInterface>>([]),
     [isLoading, setIsLoading] = useState(true),
+    [isSignout, setIsSignout] = useState(false),
     [error, setError] = useState<number | string>(0),
     subjectCounter = useSelector(
       (state: RootState) => state.counter.dashboardSubject
     ),
+    navigate = useNavigate(),
     fetchSubjects = () => {
       getSubjects(
         (data: Array<SubjectInterface>) => {
@@ -106,7 +111,16 @@ export default function Dashboard() {
               </Text>
             </Box>
           </Flex>
-          <Button variant={"ghost"} colorPalette={"red"}>
+          <Button
+            variant={"ghost"}
+            colorPalette={"red"}
+            loading={isSignout}
+            onClick={async () => {
+              setIsSignout(true);
+              await signOut(auth);
+              navigate("/");
+            }}
+          >
             <IoMdExit />
             <Text display={{ base: "none", md: "block" }}>تسجيل الخروج</Text>
           </Button>
@@ -118,7 +132,7 @@ export default function Dashboard() {
             borderRadius={"20px"}
             onClick={() => {
               SubjectDialog.open("subjectDialog", {
-                type: "add",
+                process: "add",
                 setSubject: (id, title, icon, createdTime) => {
                   setSubjects((subjects) => [
                     ...subjects,
@@ -186,9 +200,6 @@ export default function Dashboard() {
                     id: subject.id,
                     title: subject.title,
                     onSuccess: () => {
-                      console.log(JSON.stringify(subjects));
-                      console.log(subject.id);
-
                       setSubjects((subjects) =>
                         subjects.filter(({ id }) => id !== subject.id)
                       );
@@ -221,6 +232,7 @@ export default function Dashboard() {
       <IconSelector.Viewport />
       <SubjectDeleteConfirm.Viewport />
       <ResourceDialog.Viewport />
+      <ResourceDeleteConfirm.Viewport />
       <Toaster />
     </>
   );

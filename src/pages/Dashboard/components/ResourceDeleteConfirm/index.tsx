@@ -3,14 +3,7 @@ import { db } from "@/firebase-config";
 import getErrorMessage from "@/functions/getErrorMessage";
 import { Button, createOverlay, Dialog, Portal } from "@chakra-ui/react";
 import type { FirebaseError } from "firebase/app";
-import {
-  collection,
-  doc,
-  getDocs,
-  query,
-  where,
-  writeBatch,
-} from "firebase/firestore";
+import { deleteDoc, doc } from "firebase/firestore";
 import { useState } from "react";
 
 interface Props {
@@ -19,7 +12,7 @@ interface Props {
   onSuccess: () => void;
 }
 
-const subjectDeleteConfirm = createOverlay<Props>(
+const resourceDeleteConfirm = createOverlay<Props>(
   ({ id, title, onSuccess, ...rest }: Props) => {
     const [deleting, setDeleting] = useState(false),
       startDeleting = async () => {
@@ -33,23 +26,8 @@ const subjectDeleteConfirm = createOverlay<Props>(
           return;
         }
         setDeleting(true);
-        const batch = writeBatch(db);
-
         try {
-          const subjectRef = doc(db, "subjects", id);
-          const resourcesQuery = query(
-            collection(db, "resources"),
-            where("subject", "==", subjectRef)
-          );
-          const resourcesSnapshot = await getDocs(resourcesQuery);
-
-          resourcesSnapshot.forEach((resourceDoc) => {
-            batch.delete(resourceDoc.ref);
-          });
-
-          batch.delete(subjectRef);
-
-          await batch.commit();
+          await deleteDoc(doc(db, "resources", id));
           onSuccess();
         } catch (er) {
           const error = er as FirebaseError;
@@ -58,7 +36,7 @@ const subjectDeleteConfirm = createOverlay<Props>(
             type: "error",
           });
         } finally {
-          subjectDeleteConfirm.close("deleteSubject");
+          resourceDeleteConfirm.close("deleteResource");
         }
       };
 
@@ -78,9 +56,7 @@ const subjectDeleteConfirm = createOverlay<Props>(
                 <Dialog.Title>هل أنت متأكد؟</Dialog.Title>
               </Dialog.Header>
               <Dialog.Body spaceY="4">
-                <p>
-                  هل أنت متأكد من أنك تريد حذف مادة "{title}" مع جميع مصادرها؟
-                </p>
+                <p>هل أنت متأكد من أن تريد حذف المصدر "{title}"؟</p>
               </Dialog.Body>
               <Dialog.Footer>
                 <Dialog.ActionTrigger asChild>
@@ -104,4 +80,4 @@ const subjectDeleteConfirm = createOverlay<Props>(
   }
 );
 
-export default subjectDeleteConfirm;
+export default resourceDeleteConfirm;

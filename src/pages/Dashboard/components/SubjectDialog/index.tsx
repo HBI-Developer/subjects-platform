@@ -20,7 +20,7 @@ import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/firebase-config";
 
 interface Props {
-  type: "add" | "edit";
+  process: "add" | "edit";
   id?: string;
   title?: string;
   icon?: string;
@@ -44,7 +44,7 @@ const subjectDialog = createOverlay<Props>(
     setSubjectIcon,
     setSubjectTitle,
     setSubject,
-    type,
+    process,
     ...rest
   }) => {
     const [icon, setIcon] = useState(defaultIcon || initialIcon),
@@ -170,7 +170,7 @@ const subjectDialog = createOverlay<Props>(
             >
               <Dialog.Header justifyContent={"center"}>
                 <Dialog.Title>
-                  {type === "add" ? "إضافة مادة" : "تعديل مادة"}
+                  {process === "add" ? "إضافة مادة" : "تعديل مادة"}
                 </Dialog.Title>
               </Dialog.Header>
               <Dialog.Body spaceY="4">
@@ -222,7 +222,7 @@ const subjectDialog = createOverlay<Props>(
                     >
                       إغلاق
                     </Button>
-                    <Show when={type === "add"}>
+                    <Show when={process === "add"}>
                       <Button
                         loading={isProcess}
                         onClick={async () => {
@@ -242,7 +242,7 @@ const subjectDialog = createOverlay<Props>(
                       onClick={async () => {
                         let success = false;
 
-                        if (type === "edit") {
+                        if (process === "edit") {
                           success = Boolean(await updateSubject());
                         } else {
                           success = Boolean(await addSubject());

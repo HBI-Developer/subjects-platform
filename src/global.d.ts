@@ -13,6 +13,7 @@ declare global {
     type: ResourceType;
     title: string;
     resources: Array<string>;
+    createdTime: number;
   }
 }
 

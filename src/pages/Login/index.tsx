@@ -34,16 +34,13 @@ export default function Login() {
         const adminSnap = await getDoc(adminRef);
 
         if (adminSnap.exists()) {
-          console.log("Welcome Admin!");
           navigate(DASHBOARD_PAGE);
         } else {
           await signOut(auth);
           navigate("/");
         }
       }
-    } catch (er) {
-      console.log(er);
-
+    } catch (_) {
       toaster.create({
         title: `حدث خطأ أثناء محاولة تسجيل الدخول، أعد المحاولة`,
         type: "error",
@@ -74,7 +71,7 @@ export default function Login() {
             onClick={handleLogin}
             aspectRatio={1}
             padding={"2.5rem"}
-            loading={logging || !!user}
+            loading={logging || !!user || loading}
             color={{ base: "white", _hover: "#e54b4b" }}
           >
             <FaGoogle />

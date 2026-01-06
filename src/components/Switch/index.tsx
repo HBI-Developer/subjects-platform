@@ -19,6 +19,11 @@ interface SwitchDefaultProps {
   children: ReactNode;
 }
 
+interface SwitchLayoutProps {
+  children: ReactElement;
+  withDefault?: boolean;
+}
+
 const SwitchCase = ({ children }: SwitchCaseProps) => {
   return <>{children}</>;
 };
@@ -27,16 +32,21 @@ const SwitchDefault = ({ children }: SwitchDefaultProps) => {
   return <>{children}</>;
 };
 
+const SwitchLayout = ({ children }: SwitchLayoutProps) => {
+  return <>{children}</>;
+};
+
 const SwitchRoot = ({ children }: SwitchRootProps) => {
   let defaultCase: ReactElement | null = null;
   let matchedCase: ReactElement | null = null;
+  let layoutComponent: ReactElement | null = null;
 
   Children.forEach(children, (child) => {
     if (!isValidElement(child)) return;
 
-    if (matchedCase) return;
-
     if (child.type === SwitchCase) {
+      if (matchedCase) return;
+
       const { condition } = child.props as SwitchCaseProps;
 
       if (condition) {
@@ -44,24 +54,41 @@ const SwitchRoot = ({ children }: SwitchRootProps) => {
       }
     } else if (child.type === SwitchDefault) {
       defaultCase = child;
+    } else if (child.type === SwitchLayout) {
+      layoutComponent = child;
     }
   });
 
+  let contentToRender: ReactElement | null = null;
+  let isDefaultContent = false;
+
   if (matchedCase) {
-    return <>{cloneElement(matchedCase, { key: "matched-case" })}</>;
+    contentToRender = cloneElement(matchedCase, { key: "matched-case" });
+  } else if (defaultCase) {
+    contentToRender = cloneElement(defaultCase, { key: "default-case" });
+    isDefaultContent = true;
   }
 
-  if (defaultCase) {
-    return <>{cloneElement(defaultCase, { key: "default-case" })}</>;
+  if (!contentToRender) return null;
+
+  if (layoutComponent) {
+    const { children: wrapper, withDefault = false } =
+      layoutComponent.props as SwitchLayoutProps;
+    const shouldWrap = !isDefaultContent || (isDefaultContent && withDefault);
+
+    if (shouldWrap && isValidElement(wrapper)) {
+      return cloneElement(wrapper, { children: contentToRender });
+    }
   }
 
-  return null;
+  return <>{contentToRender}</>;
 };
 
 const Switch = Object.assign(SwitchRoot, {
   Root: SwitchRoot,
   Case: SwitchCase,
   Default: SwitchDefault,
+  Layout: SwitchLayout,
 });
 
 export { Switch };
