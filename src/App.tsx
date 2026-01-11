@@ -11,7 +11,7 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import { setColor } from "./store/slice/color";
-import { COLORS } from "./constants";
+import { COLORS, TITLE } from "./constants";
 import randint from "./functions/randint";
 import { Resource, Resources, Subjects, Welcome } from "./pages";
 import { Page } from "./components";
@@ -26,6 +26,7 @@ function App() {
     dispatch = useDispatch();
 
   useEffect(() => {
+    document.title = TITLE;
     dispatch(setScope(0.5));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

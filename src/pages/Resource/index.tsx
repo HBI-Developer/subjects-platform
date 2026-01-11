@@ -24,6 +24,7 @@ import { useDispatch, useSelector } from "react-redux";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { toaster } from "@/components/ui/toaster";
+import { TITLE } from "@/constants";
 
 interface Props {
   title: string;
@@ -36,6 +37,9 @@ const resource = createOverlay<Props>(
   ({ title, description, type, resources, ...rest }) => {
     const color = useSelector((state: RootState) => state.color.value),
       loading = useSelector((state: RootState) => state.loading.resource),
+      subject = useSelector(
+        (state: RootState) => state.identifier.subject.title
+      ),
       dispatch = useDispatch(),
       errors = useRef<Array<[number] | [number, number]>>([]),
       [component, setComponent] = useState<React.JSX.Element>(<></>),
@@ -164,6 +168,16 @@ const resource = createOverlay<Props>(
 
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+      if (rest.open) {
+        document.title = title;
+      } else {
+        document.title = `${TITLE} | ${subject}`;
+      }
+
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [rest.open]);
 
     return (
       <Dialog.Root size={{ base: "full", md: "cover" }} {...rest}>

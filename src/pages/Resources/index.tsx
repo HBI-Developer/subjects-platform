@@ -17,7 +17,7 @@ import { FirestoreError } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { setMainLoading, setResourceLoading } from "@/store/slice/loading";
 import { setScope } from "@/store/slice/scope";
-import { NAVIGATION_DURATION } from "@/constants";
+import { NAVIGATION_DURATION, TITLE } from "@/constants";
 import getResources from "@/functions/getResources";
 
 export default function Resources() {
@@ -68,6 +68,7 @@ export default function Resources() {
     };
 
   useEffect(() => {
+    document.title = `${TITLE} | ${subject.title}`;
     fetchResource();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

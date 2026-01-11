@@ -16,4 +16,6 @@ export const ADMIN_PAGE = "/login";
 
 export const DASHBOARD_PAGE = "/dashboard-secret-zone";
 
+export const TITLE = "منصة جامعية";
+
 export const NAVIGATION_DURATION = 250;

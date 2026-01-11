@@ -9,7 +9,7 @@ import type { RootState } from "@/store";
 import { setMainLoading } from "@/store/slice/loading";
 import { setScope } from "@/store/slice/scope";
 import { setSubjectIdentifier } from "@/store/slice/identifier";
-import { NAVIGATION_DURATION } from "@/constants";
+import { NAVIGATION_DURATION, TITLE } from "@/constants";
 import getSubjects from "@/functions/getSubjects";
 
 export default function Subjects() {
@@ -35,6 +35,7 @@ export default function Subjects() {
   };
 
   useEffect(() => {
+    document.title = `${TITLE} | قائمة المواد`;
     fetchSubjects();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
