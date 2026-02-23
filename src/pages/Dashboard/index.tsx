@@ -33,6 +33,7 @@ import { SubjectDialog } from "./components";
 import { Toaster } from "@/components/ui/toaster";
 import { signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { TITLE } from "@/constants";
 
 export default function Dashboard() {
   const [user] = useAuthState(auth),
@@ -41,7 +42,7 @@ export default function Dashboard() {
     [isSignout, setIsSignout] = useState(false),
     [error, setError] = useState<number | string>(0),
     subjectCounter = useSelector(
-      (state: RootState) => state.counter.dashboardSubject
+      (state: RootState) => state.counter.dashboardSubject,
     ),
     navigate = useNavigate(),
     fetchSubjects = () => {
@@ -55,12 +56,13 @@ export default function Dashboard() {
         },
         () => {
           setIsLoading(false);
-        }
+        },
       );
     };
 
   useEffect(() => {
     fetchSubjects();
+    document.title = `${TITLE} | لوحة التحكم`;
   }, []);
 
   return (
@@ -201,7 +203,7 @@ export default function Dashboard() {
                     title: subject.title,
                     onSuccess: () => {
                       setSubjects((subjects) =>
-                        subjects.filter(({ id }) => id !== subject.id)
+                        subjects.filter(({ id }) => id !== subject.id),
                       );
                     },
                   });

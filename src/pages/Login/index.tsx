@@ -4,7 +4,7 @@ import { FaGoogle } from "react-icons/fa";
 import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { auth, db } from "@/firebase-config";
 import { doc, getDoc } from "firebase/firestore";
-import { DASHBOARD_PAGE } from "@/constants";
+import { DASHBOARD_PAGE, TITLE } from "@/constants";
 import { useNavigate } from "react-router-dom";
 import { toaster, Toaster } from "@/components/ui/toaster";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -49,6 +49,10 @@ export default function Login() {
       endLogging();
     }
   };
+
+  useEffect(() => {
+    document.title = `${TITLE} | تسجيل الدخول`;
+  }, []);
 
   useEffect(() => {
     if (!loading && user) {

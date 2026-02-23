@@ -1,4 +1,10 @@
-import { AudioPlayer, Carousel, OfficeViewer, PDFViewer, VideoPlayer } from "@/components";
+import {
+  AudioPlayer,
+  Carousel,
+  OfficeViewer,
+  PDFViewer,
+  VideoPlayer,
+} from "@/components";
 import getErrorMessage from "@/functions/getErrorMessage";
 import verifyResources from "@/functions/verifyResources";
 import type { RootState } from "@/store";
@@ -38,7 +44,7 @@ const resource = createOverlay<Props>(
     const color = useSelector((state: RootState) => state.color.value),
       loading = useSelector((state: RootState) => state.loading.resource),
       subject = useSelector(
-        (state: RootState) => state.identifier.subject.title
+        (state: RootState) => state.identifier.subject.title,
       ),
       dispatch = useDispatch(),
       errors = useRef<Array<[number] | [number, number]>>([]),
@@ -59,7 +65,7 @@ const resource = createOverlay<Props>(
             >
               <Heading>{code}</Heading>
               <Text>{message}</Text>
-            </Center>
+            </Center>,
           );
 
           dispatch(setResourceLoading(false));
@@ -79,10 +85,6 @@ const resource = createOverlay<Props>(
             }
             case "video": {
               setComponent(<VideoPlayer src={resources[0]} />);
-              break;
-            }
-            case "office": {
-              setComponent(<OfficeViewer src={resources[0]} />);
               break;
             }
           }
@@ -114,7 +116,7 @@ const resource = createOverlay<Props>(
 
             const zipBlob = await zip.generateAsync({ type: "blob" });
             saveAs(
-              new File([zipBlob], `${title}.zip`, { type: "application/zip" })
+              new File([zipBlob], `${title}.zip`, { type: "application/zip" }),
             );
 
             toaster.create({
@@ -263,7 +265,7 @@ const resource = createOverlay<Props>(
         </Portal>
       </Dialog.Root>
     );
-  }
+  },
 );
 
 export default resource;
