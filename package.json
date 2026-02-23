@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@chakra-ui/react": "^3.30.0",
+    "@cyntler/react-doc-viewer": "^1.17.1",
     "@embedpdf/core": "^1.5.0",
     "@embedpdf/engines": "^1.5.0",
     "@embedpdf/plugin-export": "^1.5.0",

@@ -94,6 +94,11 @@ export default function verifyResources(
           i.src = url;
           el = i;
           successEvents = ["load"];
+        } else if (type === "office") {
+          const i = document.createElement("iframe");
+          i.src = url;
+          el = i;
+          successEvents = ["load"];
         } else {
           // audio
           const a = document.createElement("audio");

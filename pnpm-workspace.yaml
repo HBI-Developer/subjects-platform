@@ -1,6 +1,7 @@
 onlyBuiltDependencies:
   - '@firebase/util'
   - '@parcel/watcher'
+  - canvas
   - core-js
   - esbuild
   - protobufjs

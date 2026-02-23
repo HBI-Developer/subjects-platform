@@ -17,6 +17,7 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import {
+  TbBrandOffice,
   TbBrandParsinta,
   TbFileTypePdf,
   TbHeadphones,
@@ -37,6 +38,7 @@ import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/firebase-config";
 import type { FirebaseError } from "firebase/app";
 import getErrorMessage from "@/functions/getErrorMessage";
+import isOfficeUrl from "@/helpers/isOfficeUrl";
 
 interface Props {
   process: "add" | "edit";
@@ -50,16 +52,17 @@ interface Props {
     type: ResourceType,
     title: string,
     resources: Array<string>,
-    createdTime: number
+    createdTime: number,
   ) => void;
   setResourceInfo?: (
     type: ResourceType,
     title: string,
-    resources: Array<string>
+    resources: Array<string>,
   ) => void;
 }
 
 const resourceTypes = [
+  { value: "office", color: "orange", icon: <TbBrandOffice /> },
   { value: "video", color: "blue", icon: <TbBrandParsinta /> },
   { value: "audio", color: "cyan", icon: <TbHeadphones /> },
   { value: "images", color: "teal", icon: <TbPhoto /> },
@@ -78,13 +81,13 @@ const resourceDialog = createOverlay<Props>(
     setResourceInfo,
     ...rest
   }) => {
-    const [type, setType] = useState(initialType || "video");
+    const [type, setType] = useState(initialType || "office");
     const [title, setTitle] = useState(initialTitle || "");
     const [isChecking, setIsChecking] = useState(false);
     const [isProcess, setIsProcess] = useState(false);
     const [activeImage, setActiveImage] = useState(-1);
     const [url, setUrl] = useState(
-      (initialType !== "images" && initialResources?.[0]) || ""
+      (initialType !== "images" && initialResources?.[0]) || "",
     );
     const [images, setImages] = useState<Array<string>>(initialResources || []);
     const carouselSettings: Settings = {
@@ -113,6 +116,11 @@ const resourceDialog = createOverlay<Props>(
           }
           case "pdf": {
             check = await isPdfUrl(url);
+            break;
+          }
+
+          case "office": {
+            check = typeof (await isOfficeUrl(url)) === "string";
             break;
           }
         }
@@ -433,7 +441,7 @@ const resourceDialog = createOverlay<Props>(
                                       colorPalette={"red"}
                                       onClick={() => {
                                         setImages((images) =>
-                                          images.filter((_, i) => index !== i)
+                                          images.filter((_, i) => index !== i),
                                         );
                                       }}
                                     >
@@ -525,7 +533,7 @@ const resourceDialog = createOverlay<Props>(
         </Portal>
       </Dialog.Root>
     );
-  }
+  },
 );
 
 export default resourceDialog;

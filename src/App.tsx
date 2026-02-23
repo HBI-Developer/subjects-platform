@@ -28,13 +28,18 @@ function App() {
   useEffect(() => {
     document.title = TITLE;
     dispatch(setScope(0.5));
+
+    fetch("https://archive.org/metadata/CrimeAndPunishmentP01")
+      .then((res) => res.json())
+      .then((data) => console.log(data));
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     document.body.style.setProperty(
       "--sb-thumb-color",
-      `var(--chakra-colors-${color}${color !== "white" ? "-700" : ""})`
+      `var(--chakra-colors-${color}${color !== "white" ? "-700" : ""})`,
     );
   }, [color]);
 

@@ -10,6 +10,7 @@ import {
   TbHeadphones,
   TbBrandParsinta,
   TbBook2,
+  TbBrandOffice,
 } from "react-icons/tb";
 import { useDispatch, useSelector } from "react-redux";
 import { Resource } from "..";
@@ -40,7 +41,7 @@ export default function Resources() {
         () => {
           dispatch(setMainLoading(false));
           dispatch(setScope(3));
-        }
+        },
       );
     },
     getIcon = (type: ResourceType) => {
@@ -59,6 +60,10 @@ export default function Resources() {
 
         case "video": {
           return <TbBrandParsinta />;
+        }
+
+        case "office": {
+          return <TbBrandOffice />;
         }
 
         default: {

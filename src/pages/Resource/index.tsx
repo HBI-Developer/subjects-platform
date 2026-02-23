@@ -1,4 +1,4 @@
-import { AudioPlayer, Carousel, PDFViewer, VideoPlayer } from "@/components";
+import { AudioPlayer, Carousel, OfficeViewer, PDFViewer, VideoPlayer } from "@/components";
 import getErrorMessage from "@/functions/getErrorMessage";
 import verifyResources from "@/functions/verifyResources";
 import type { RootState } from "@/store";
@@ -69,12 +69,20 @@ const resource = createOverlay<Props>(
               setComponent(<PDFViewer src={resources[0]} />);
               break;
             }
+            case "office": {
+              setComponent(<OfficeViewer src={resources[0]} />);
+              break;
+            }
             case "audio": {
               setComponent(<AudioPlayer src={resources[0]} />);
               break;
             }
             case "video": {
               setComponent(<VideoPlayer src={resources[0]} />);
+              break;
+            }
+            case "office": {
+              setComponent(<OfficeViewer src={resources[0]} />);
               break;
             }
           }
@@ -150,7 +158,6 @@ const resource = createOverlay<Props>(
 
               if (!resource.ok) {
                 errors.current.push([resource.status]);
-
                 return;
               }
             } catch (_) {

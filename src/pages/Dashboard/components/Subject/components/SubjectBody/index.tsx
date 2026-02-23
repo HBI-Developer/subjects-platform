@@ -18,6 +18,7 @@ import { FaRegFolderOpen, FaTrash } from "react-icons/fa6";
 import { HiDotsVertical } from "react-icons/hi";
 import { MdEdit } from "react-icons/md";
 import {
+  TbBrandOffice,
   TbBrandParsinta,
   TbFileTypePdf,
   TbHeadphones,
@@ -57,11 +58,14 @@ export default function SubjectBody({
         },
         () => {
           setIsLoading(false);
-        }
+        },
       );
     },
     getTypeIcon = (type: ResourceType) => {
       switch (type) {
+        case "office": {
+          return { color: "orange", icon: <TbBrandOffice /> };
+        }
         case "pdf": {
           return { color: "red", icon: <TbFileTypePdf /> };
         }
@@ -186,7 +190,7 @@ export default function SubjectBody({
                                 setResourceInfo: (
                                   type,
                                   title,
-                                  thisResources
+                                  thisResources,
                                 ) => {
                                   setResources((resources) =>
                                     resources.map((res) => {
@@ -200,7 +204,7 @@ export default function SubjectBody({
                                       }
 
                                       return res;
-                                    })
+                                    }),
                                   );
                                 },
                               });
@@ -229,8 +233,8 @@ export default function SubjectBody({
                                 onSuccess: () => {
                                   setResources((resources) =>
                                     resources.filter(
-                                      ({ id }) => id !== resource.id
-                                    )
+                                      ({ id }) => id !== resource.id,
+                                    ),
                                   );
                                   setResourcesCount((count) => count - 1);
                                 },
