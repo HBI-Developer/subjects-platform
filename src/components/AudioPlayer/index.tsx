@@ -76,7 +76,7 @@ export default function AudioPlayer({ src }: Props) {
           0,
           0,
           canvas.width,
-          canvas.height
+          canvas.height,
         );
 
       if (!context || !gradient) return;
@@ -226,7 +226,10 @@ export default function AudioPlayer({ src }: Props) {
         setVolume(0);
       }
     },
-    loadingEnd = () => dispatch(setResourceLoading(false));
+    loadingEnd = () => dispatch(setResourceLoading(false)),
+    audioEnded = () => {
+      isPlaying.current = false;
+    };
 
   useEffect(() => {
     if (!containerRef.current || !canvasRef.current) return;
@@ -243,7 +246,7 @@ export default function AudioPlayer({ src }: Props) {
           document.querySelector(`.${styles.volumeBar}`) as HTMLDivElement
         )?.style.setProperty(
           "height",
-          `${container.clientHeight * (isMobile ? 0.6 : 0.7)}px`
+          `${container.clientHeight * (isMobile ? 0.6 : 0.7)}px`,
         );
       },
       timeupdate = () => setCurrentTime(currentAudio.currentTime);
@@ -255,7 +258,7 @@ export default function AudioPlayer({ src }: Props) {
       (_, i) => ({
         x: i,
         y: (canvasRef.current?.height || 100) / 2,
-      })
+      }),
     );
 
     draw();
@@ -279,6 +282,7 @@ export default function AudioPlayer({ src }: Props) {
     currentAudio.addEventListener("loadedmetadata", loadingEnd);
     currentAudio.addEventListener("error", loadingEnd);
     currentAudio.addEventListener("timeupdate", timeupdate);
+    currentAudio.addEventListener("ended", audioEnded);
 
     return () => {
       container.removeEventListener("resize", setCanvasSize);
@@ -289,19 +293,20 @@ export default function AudioPlayer({ src }: Props) {
       currentAudio.removeEventListener("loadedmetadata", loadingEnd);
       currentAudio.removeEventListener("error", loadingEnd);
       currentAudio.removeEventListener("timeupdate", timeupdate);
+      currentAudio.removeEventListener("ended", audioEnded);
       currentAudio.pause();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (duration) {
+    if (duration && !audio.current.ended) {
       stateEffect.current?.style.setProperty("display", "block");
       stateEffect.current?.style.setProperty("animation-name", "unset");
       setTimeout(() => {
         stateEffect.current?.style.setProperty(
           "animation-name",
-          "scale-in-out"
+          "scale-in-out",
         );
       }, 0);
       setTimeout(() => {
