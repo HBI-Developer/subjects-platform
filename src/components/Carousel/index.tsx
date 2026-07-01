@@ -7,6 +7,7 @@ import { useDispatch } from "react-redux";
 import { setResourceLoading } from "@/store/slice/loading";
 import getErrorMessage from "@/functions/getErrorMessage";
 import useImagesTracker from "@/hooks/useImagesTracker";
+import { RESOURCE_PADDING } from "@/constants";
 
 interface Props {
   resources: Array<string>;
@@ -24,19 +25,19 @@ export default function Carousel({ resources }: Props) {
         isMobile && isVertical
           ? 1
           : (isMobile && !isVertical) || isTablet
-          ? 2
-          : 3,
+            ? 2
+            : 3,
       slidesToScroll:
         isMobile && isVertical
           ? 1
           : (isMobile && !isVertical) || isTablet
-          ? 2
-          : 3,
+            ? 2
+            : 3,
     },
     { tracker, isLoaded, failures } = useImagesTracker();
 
   return (
-    <Box ref={tracker}>
+    <Box ref={tracker} marginInline={RESOURCE_PADDING}>
       <Slider {...settings}>
         {resources.map((resource, index) => {
           const image = failures.find((f) => f.url === resource),

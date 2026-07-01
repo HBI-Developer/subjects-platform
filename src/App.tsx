@@ -29,10 +29,6 @@ function App() {
     document.title = TITLE;
     dispatch(setScope(0.5));
 
-    fetch("https://archive.org/metadata/CrimeAndPunishmentP01")
-      .then((res) => res.json())
-      .then((data) => console.log(data));
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

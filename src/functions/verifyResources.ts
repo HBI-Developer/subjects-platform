@@ -41,7 +41,7 @@ function resolveVideoTarget(url: string): VideoTarget {
 export default function verifyResources(
   type: ResourceType,
   resources: string[],
-  timeout = 7000
+  timeout = 7000,
 ): Promise<VerifyResult[]> {
   return Promise.all(
     resources.map((url) => {
@@ -81,20 +81,12 @@ export default function verifyResources(
             el = f;
             successEvents = ["load"];
           }
-        } else if (type === "pdf") {
-          const o = document.createElement("object");
-          o.type = "application/pdf";
-          o.data = url;
-          o.width = "0";
-          o.height = "0";
-          el = o;
-          successEvents = ["load"];
         } else if (type === "images") {
           const i = document.createElement("img");
           i.src = url;
           el = i;
           successEvents = ["load"];
-        } else if (type === "office") {
+        } else if (["office", "pdf"].includes(type)) {
           const i = document.createElement("iframe");
           i.src = url;
           el = i;
@@ -111,7 +103,7 @@ export default function verifyResources(
 
         // ---------- الربط ----------
         successEvents.forEach((e) =>
-          el.addEventListener(e, success, { once: true })
+          el.addEventListener(e, success, { once: true }),
         );
 
         el.addEventListener("error", failure, { once: true });
@@ -127,6 +119,6 @@ export default function verifyResources(
           el.remove();
         }
       });
-    })
+    }),
   );
 }

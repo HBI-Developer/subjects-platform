@@ -1,15 +1,10 @@
-import {
-  AudioPlayer,
-  Carousel,
-  OfficeViewer,
-  PDFViewer,
-  VideoPlayer,
-} from "@/components";
+import { AudioPlayer, Carousel, OfficeViewer, VideoPlayer } from "@/components";
 import getErrorMessage from "@/functions/getErrorMessage";
 import verifyResources from "@/functions/verifyResources";
 import type { RootState } from "@/store";
 import { setResourceLoading } from "@/store/slice/loading";
 import {
+  Box,
   Button,
   Center,
   CloseButton,
@@ -30,7 +25,7 @@ import { useDispatch, useSelector } from "react-redux";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { toaster } from "@/components/ui/toaster";
-import { TITLE } from "@/constants";
+import { RESOURCE_PADDING, TITLE } from "@/constants";
 
 interface Props {
   title: string;
@@ -72,7 +67,28 @@ const resource = createOverlay<Props>(
         } else {
           switch (type) {
             case "pdf": {
-              setComponent(<PDFViewer src={resources[0]} />);
+              setComponent(
+                <Box
+                  flex="1"
+                  minHeight="0"
+                  position="absolute"
+                  top="0"
+                  bottom="0"
+                  left="0"
+                  right="0"
+                  padding={"10px 15px"}
+                  overflow="hidden"
+                >
+                  <iframe
+                    src={resources[0]}
+                    width="100%"
+                    height="100%"
+                    title="PDF Viewer"
+                    style={{ border: "none", width: "100%", height: "100%" }}
+                    onLoad={() => dispatch(setResourceLoading(false))}
+                  />
+                </Box>,
+              );
               break;
             }
             case "office": {
@@ -193,7 +209,13 @@ const resource = createOverlay<Props>(
         <Portal>
           <Dialog.Backdrop />
           <Dialog.Positioner>
-            <Dialog.Content dir="rtl" minH={"100%"} h={"auto"}>
+            <Dialog.Content
+              dir="rtl"
+              minH={"100%"}
+              h={"auto"}
+              overflow={"hidden"}
+              height={"stretch"}
+            >
               <Dialog.Header userSelect={"none"}>
                 <Grid
                   templateColumns={"auto 1fr auto"}
@@ -231,6 +253,11 @@ const resource = createOverlay<Props>(
                 spaceY="4"
                 position={"relative"}
                 overflowX={"hidden"}
+                display={"flex"}
+                flex={"1"}
+                flexDirection={"column"}
+                justifyContent={"center"}
+                p={RESOURCE_PADDING}
                 overflowY={loading ? "hidden" : "auto"}
               >
                 {description && (

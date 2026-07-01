@@ -1,3 +1,10 @@
+allowBuilds:
+  '@firebase/util': true
+  '@parcel/watcher': true
+  canvas: true
+  core-js: true
+  esbuild: true
+  protobufjs: true
 onlyBuiltDependencies:
   - '@firebase/util'
   - '@parcel/watcher'
