@@ -71,9 +71,6 @@
 
 ## 🖼️ Visual Showcase
 
-> [!TIP]
-> Upload real screenshots of your application to the designated assets directory (e.g., `public/` or an external hosting service) and update the image paths below.
-
 |                        Welcome Screen                       |                    Subjects Catalog                     |
 | :---------------------------------------------------------: | :-----------------------------------------------------: |
 | ![Welcome Screen](/public/welcome-screen.png)               | ![Subjects Screen](/public/subjects-catalog.png) |
