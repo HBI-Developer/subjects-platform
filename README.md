@@ -74,10 +74,10 @@
 > [!TIP]
 > Upload real screenshots of your application to the designated assets directory (e.g., `public/` or an external hosting service) and update the image paths below.
 
-|                Welcome Screen                 |                 Subjects Catalog                 |
-| :-------------------------------------------: | :----------------------------------------------: |
-| ![Welcome Screen](/public/welcome-screen.png) | ![Subjects Screen](/public/subjects-catalog.png) |
-|     _Welcome and login interactive gate_      |  _Browse subjects sections with dynamic icons_   |
+|                        Welcome Screen                       |                    Subjects Catalog                     |
+| :---------------------------------------------------------: | :-----------------------------------------------------: |
+| ![Welcome Screen](/public/welcome-screen.png)               | ![Subjects Screen](/public/subjects-catalog.png) |
+|            _Welcome and login interactive gate_             |       _Browse subjects sections with dynamic icons_     |
 
 |                 Integrated Resource Viewer                  |                 Secret Admin Dashboard                  |
 | :---------------------------------------------------------: | :-----------------------------------------------------: |
