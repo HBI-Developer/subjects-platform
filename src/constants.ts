@@ -19,3 +19,5 @@ export const DASHBOARD_PAGE = "/dashboard-secret-zone";
 export const TITLE = "منصة جامعية";
 
 export const NAVIGATION_DURATION = 250;
+
+export const ORPHAN_COLLECTION_ID = "00000000000000000000";

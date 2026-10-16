@@ -1,0 +1,14 @@
+{
+  "$schema": "https://stryker-mutator.io/schema-stryker.json",
+  "testRunner": "vitest",
+  "plugins": ["@stryker-mutator/vitest-runner"],
+  "reporters": ["json", "clear-text", "html"],
+  "coverageAnalysis": "perTest",
+  "concurrency": 4,
+  "thresholds": { "high": 80, "low": 60, "break": 0 },
+  "mutate": ["src/helpers/isvalidurl.ts", "src/helpers/normalizeresourceurl.ts"],
+  "timeoutMS": 10000,
+  "timeoutFactor": 1.5,
+  "dryRunTimeoutMinutes": 2,
+  "ignorePatterns": ["node_modules", "dist", ".firebase", "public", "reports"]
+}

@@ -1,5 +1,5 @@
-import { onCall } from "firebase-functions/v2/https";
 import admin from "firebase-admin";
+import { onCall } from "firebase-functions/v2/https";
 
 // تهيئة التطبيق بصلاحيات المسؤول (Admin)
 admin.initializeApp();

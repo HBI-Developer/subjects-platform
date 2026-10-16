@@ -6,6 +6,7 @@ interface Identifier {
 }
 
 const initialState = {
+  collection: { title: "", id: "" },
   subject: { title: "", id: "" },
   resource: { title: "", id: "" },
 };
@@ -14,15 +15,14 @@ const identifierSlice = createSlice({
   name: "identifier",
   initialState,
   reducers: {
+    setCollectionIdentifier: (state, { payload }: { payload: Identifier }) => {
+      state.collection = payload;
+    },
     setSubjectIdentifier: (state, { payload }: { payload: Identifier }) => {
       state.subject = payload;
-    },
-    setResourceIdentifier: (state, { payload }: { payload: Identifier }) => {
-      state.resource = payload;
     },
   },
 });
 
-export const { setSubjectIdentifier, setResourceIdentifier } =
-  identifierSlice.actions;
+export const { setCollectionIdentifier, setSubjectIdentifier } = identifierSlice.actions;
 export default identifierSlice.reducer;

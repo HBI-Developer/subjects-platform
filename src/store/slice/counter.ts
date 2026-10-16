@@ -9,11 +9,8 @@ const counterSlice = createSlice({
     increaseDashboardSubject: (state) => {
       state.dashboardSubject += 1;
     },
-    setDashboardSubject: (state, { payload }) => {
-      state.dashboardSubject = payload;
-    },
   },
 });
 
-export const { increaseDashboardSubject, setDashboardSubject } = counterSlice.actions;
+export const { increaseDashboardSubject } = counterSlice.actions;
 export default counterSlice.reducer;

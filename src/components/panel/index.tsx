@@ -1,14 +1,6 @@
-import type { RootState } from "@/store";
-import {
-  Card,
-  Center,
-  Flex,
-  Grid,
-  Icon,
-  Text,
-  type CardRootProps,
-} from "@chakra-ui/react";
+import { Card, type CardRootProps, Center, Flex, Grid, Icon, Text } from "@chakra-ui/react";
 import { useSelector } from "react-redux";
+import type { RootState } from "@/store";
 
 type Props = CardRootProps & {
   title: string;

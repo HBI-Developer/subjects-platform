@@ -1,0 +1,16 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": ["scripts/*.cjs"],
+      "project": ["src/**/*.{ts,tsx}", "scripts/**/*.{cjs,js}"]
+    },
+    "functions": {
+      "project": ["src/**/*.ts"]
+    }
+  },
+  "ignore": ["src/global.d.ts", "src/components/ui/color-mode.tsx"],
+  "ignoreBinaries": ["firebase"],
+  "ignoreDependencies": ["firebase-admin"],
+  "ignoreExportsUsedInFile": true
+}

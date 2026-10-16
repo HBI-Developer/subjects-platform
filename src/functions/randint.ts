@@ -5,5 +5,5 @@ export default function randint(min: number, max: number): number {
   if (max < min) {
     throw new RangeError("randint: max must be >= min");
   }
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+  return Math.floor(Math.random() * (max - min + 1)) + min; // NOSONAR(typescript:S2245) -- UI jitter only, never auth/tokens.
 }

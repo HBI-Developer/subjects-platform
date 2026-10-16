@@ -6,12 +6,53 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-.env
 
+# Env + secrets (keep example tracked)
+.env
+.env.local
+.env.*.local
+!.env.example
+*.pem
+*.key
+*-key.json
+*service-account*.json
+*serviceAccountKey*.json
+*serviceaccountkey*.json
+.firebaserc
+
+# Dependencies
 node_modules
-data
+
+# Build output
 dist
 dist-ssr
+.vite/
+*.tsbuildinfo
+functions/lib/
+functions/*.log
+
+# Firebase (cache, debug logs, emulator exports)
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+database-debug.log*
+firebase-export*/
+emulator-data/
+
+# Data - fully ignored, not code
+data/
+
+# Reports / analysis output - not code
+reports/
+coverage/
+.scannerwork/
+.sonar/
+.sonarqube/
+.stryker-tmp/
+sonar-*
+
+# Local overrides
 *.local
 
 # Editor directories and files
@@ -19,6 +60,7 @@ dist-ssr
 !.vscode/extensions.json
 .idea
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
