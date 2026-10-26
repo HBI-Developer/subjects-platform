@@ -21,9 +21,8 @@ export default async function getCollections(
       q = query(collectionsCollection, orderBy("createdTime", "asc")),
       lastFetch = localStorage.getItem(CACHE_KEY),
       now = Date.now(),
-      isDataFresh = lastFetch && now - Number.parseInt(lastFetch, 10) < ONE_DAY_MS;
-
-    console.log(collectionsCollection);
+      isDataFresh =
+        lastFetch && now - Number.parseInt(lastFetch, 10) < ONE_DAY_MS;
 
     let snapshot: QuerySnapshot;
 
