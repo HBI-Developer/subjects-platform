@@ -30,7 +30,7 @@ import { isArchiveUrl, isDriveUrl, splitDrivePair } from "@/helpers/normalizeres
 import type { RootState } from "@/store";
 import { setResourceLoading } from "@/store/slice/loading";
 
-interface Props {
+export interface Props {
   title: string;
   type: ResourceType;
   description?: string;

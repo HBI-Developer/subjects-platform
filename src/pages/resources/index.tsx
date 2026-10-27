@@ -1,6 +1,6 @@
 import { Center, Flex, Heading, Icon, Show, Text } from "@chakra-ui/react";
-import type { FirestoreError } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import type { FirestoreError, QueryDocumentSnapshot } from "firebase/firestore";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BiChevronRight } from "react-icons/bi";
 import { GiSolarSystem } from "react-icons/gi";
 import {
@@ -13,44 +13,52 @@ import {
 } from "react-icons/tb";
 import { useDispatch, useSelector } from "react-redux";
 import { ErrorMessage, Panel } from "@/components";
+import VirtualPanelList from "@/components/virtualpanellist";
 import { NAVIGATION_DURATION, TITLE } from "@/constants";
-import getResources from "@/functions/getresources";
+import getResourcesPage from "@/functions/getresourcespage";
 import navigate from "@/functions/navigate";
+import openResource from "@/functions/openresource";
 import type { RootState } from "@/store";
 import { setMainLoading, setResourceLoading } from "@/store/slice/loading";
 import { setScope } from "@/store/slice/scope";
-import { Resource } from "..";
 
 export default function Resources() {
   const color = useSelector((state: RootState) => state.color.value),
-    loading = useSelector((state: RootState) => state.loading.main),
     subject = useSelector((state: RootState) => state.identifier.subject),
     dispatch = useDispatch(),
     [resources, setResources] = useState<Array<ResourceInterface>>([]),
     [error, setError] = useState<number | string>(0),
-    fetchResource = () => {
-      if (!subject.id) {
-        dispatch(setMainLoading(false));
-        dispatch(setScope(3));
-        return;
-      }
-
-      void getResources(
-        subject.id,
-        (data) => {
-          setResources(data);
-        },
-        (error_) => {
-          const error = error_ as FirestoreError;
-          console.error("[Resources]", error.code, error.message);
-          setError(error.code);
-        },
-        () => {
+    [hasMore, setHasMore] = useState(true),
+    [isLoadingMore, setIsLoadingMore] = useState(false),
+    cursor = useRef<QueryDocumentSnapshot | undefined>(undefined),
+    fetchResource = useCallback(
+      async (nextPage = false) => {
+        if (!subject.id) {
           dispatch(setMainLoading(false));
-          dispatch(setScope(4));
-        },
-      );
-    },
+          dispatch(setScope(3));
+          return;
+        }
+
+        if (nextPage && (!hasMore || isLoadingMore)) return;
+        nextPage ? setIsLoadingMore(true) : dispatch(setMainLoading(true));
+        try {
+          const page = await getResourcesPage(subject.id, nextPage ? cursor.current : undefined);
+          cursor.current = page.cursor;
+          setHasMore(page.hasMore);
+          setResources((previous) => (nextPage ? [...previous, ...page.data] : page.data));
+        } catch (error_) {
+          const error = error_ as FirestoreError;
+          setError(error.code);
+        } finally {
+          setIsLoadingMore(false);
+          if (!nextPage) {
+            dispatch(setMainLoading(false));
+            dispatch(setScope(4));
+          }
+        }
+      },
+      [dispatch, hasMore, isLoadingMore, subject.id],
+    ),
     getIcon = (type: ResourceType) => {
       switch (type) {
         case "pdf": {
@@ -89,7 +97,7 @@ export default function Resources() {
     }
 
     document.title = `${TITLE} | ${subject.title}`;
-    fetchResource();
+    void fetchResource();
   }, []);
 
   return (
@@ -102,7 +110,7 @@ export default function Resources() {
       paddingRight={{ base: "1rem", md: "1.2rem" }}
       className="custom-scroll"
       position={"relative"}
-      overflowY={loading ? "hidden" : "auto"}
+      overflow="hidden"
       alignItems={{ base: "center", md: "flex-start" }}
     >
       <Flex
@@ -156,23 +164,27 @@ export default function Resources() {
             </Center>
           }
         >
-          {resources.map((resource) => {
-            return (
+          <VirtualPanelList
+            items={resources}
+            hasMore={hasMore}
+            isLoadingMore={isLoadingMore}
+            onLoadMore={() => void fetchResource(true)}
+            renderItem={(resource) => (
               <Panel
                 key={resource.id}
                 title={resource.title}
                 icon={getIcon(resource.type)}
                 onClick={() => {
                   dispatch(setResourceLoading(true));
-                  Resource.open("r", {
+                  void openResource({
                     title: resource.title,
                     type: resource.type,
                     resources: resource.resources,
                   });
                 }}
               />
-            );
-          })}
+            )}
+          />
         </Show>
       </Show>
     </Flex>

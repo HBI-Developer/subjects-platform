@@ -1,13 +1,14 @@
 import { Center, Flex, Heading, Icon, Show, Text } from "@chakra-ui/react";
 import { Icon as Iconify } from "@iconify/react";
-import type { FirestoreError } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import type { FirestoreError, QueryDocumentSnapshot } from "firebase/firestore";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BiChevronRight } from "react-icons/bi";
 import { GiSolarSystem } from "react-icons/gi";
 import { useDispatch, useSelector } from "react-redux";
 import { ErrorMessage, Panel } from "@/components";
+import VirtualPanelList from "@/components/virtualpanellist";
 import { NAVIGATION_DURATION, TITLE } from "@/constants";
-import getSubjects from "@/functions/getsubjects";
+import getSubjectsPage from "@/functions/getsubjectspage";
 import navigate from "@/functions/navigate";
 import type { RootState } from "@/store";
 import { setSubjectIdentifier } from "@/store/slice/identifier";
@@ -16,34 +17,40 @@ import { setScope } from "@/store/slice/scope";
 
 export default function Subjects() {
   const color = useSelector((state: RootState) => state.color.value),
-    loading = useSelector((state: RootState) => state.loading.main),
     collection = useSelector((state: RootState) => state.identifier.collection),
     dispatch = useDispatch(),
     [subjects, setSubjects] = useState<Array<SubjectInterface>>([]),
     [error, setError] = useState<number | string>(0),
-    fetchSubjects = () => {
-      if (!collection.id) {
-        dispatch(setMainLoading(false));
-        dispatch(setScope(2));
-        return;
-      }
-
-      void getSubjects(
-        (data) => {
-          setSubjects(data);
-        },
-        (error_) => {
-          const error = error_ as FirestoreError;
-          console.error("[Subjects]", error.code, error.message);
-          setError(error.code);
-        },
-        () => {
+    [hasMore, setHasMore] = useState(true),
+    [isLoadingMore, setIsLoadingMore] = useState(false),
+    cursor = useRef<QueryDocumentSnapshot | undefined>(undefined),
+    fetchSubjects = useCallback(
+      async (nextPage = false) => {
+        if (!collection.id) {
           dispatch(setMainLoading(false));
-          dispatch(setScope(3));
-        },
-        collection.id,
-      );
-    };
+          dispatch(setScope(2));
+          return;
+        }
+        if (nextPage && (!hasMore || isLoadingMore)) return;
+        nextPage ? setIsLoadingMore(true) : dispatch(setMainLoading(true));
+        try {
+          const page = await getSubjectsPage(collection.id, nextPage ? cursor.current : undefined);
+          cursor.current = page.cursor;
+          setHasMore(page.hasMore);
+          setSubjects((previous) => (nextPage ? [...previous, ...page.data] : page.data));
+        } catch (error_) {
+          const error = error_ as FirestoreError;
+          setError(error.code);
+        } finally {
+          setIsLoadingMore(false);
+          if (!nextPage) {
+            dispatch(setMainLoading(false));
+            dispatch(setScope(3));
+          }
+        }
+      },
+      [collection.id, dispatch, hasMore, isLoadingMore],
+    );
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: mount-only fetch; helper has per-render identity and is also called from the retry handler
   useEffect(() => {
@@ -55,7 +62,7 @@ export default function Subjects() {
     }
 
     document.title = `${TITLE} | ${collection.title}`;
-    fetchSubjects();
+    void fetchSubjects();
   }, []);
 
   return (
@@ -68,7 +75,7 @@ export default function Subjects() {
       paddingRight={{ base: "1rem", md: "1.2rem" }}
       className="custom-scroll"
       position={"relative"}
-      overflowY={loading ? "hidden" : "auto"}
+      overflow="hidden"
       alignItems={{ base: "center", md: "flex-start" }}
     >
       <Flex
@@ -122,8 +129,12 @@ export default function Subjects() {
             </Center>
           }
         >
-          {subjects.map((subject) => {
-            return (
+          <VirtualPanelList
+            items={subjects}
+            hasMore={hasMore}
+            isLoadingMore={isLoadingMore}
+            onLoadMore={() => void fetchSubjects(true)}
+            renderItem={(subject) => (
               <Panel
                 key={subject.id}
                 title={subject.title}
@@ -134,8 +145,8 @@ export default function Subjects() {
                   navigate(2.5, 3.5);
                 }}
               />
-            );
-          })}
+            )}
+          />
         </Show>
       </Show>
     </Flex>

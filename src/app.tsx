@@ -1,26 +1,39 @@
 import "./app.css";
 import { Box, Button, Center, Flex, Grid, Presence, Spinner } from "@chakra-ui/react";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Page } from "./components";
 import { Toaster } from "./components/ui/toaster";
 import { COLORS, TITLE } from "./constants";
 import randint from "./functions/randint";
 import toPage from "./functions/topage";
-import { Collections, Resource, Resources, Subjects, Welcome } from "./pages";
+import { Collections, Resources, Subjects, Welcome } from "./pages";
 import type { RootState } from "./store";
 import { setColor } from "./store/slice/color";
 import { setScope } from "./store/slice/scope";
 
+const ResourceViewport = lazy(async () => {
+  const { default: Resource } = await import("./pages/resource");
+  return { default: () => <Resource.Viewport /> };
+});
+
 function App() {
   const color = useSelector((state: RootState) => state.color.value),
     mainLoading = useSelector((state: RootState) => state.loading.main),
+    [resourceUiReady, setResourceUiReady] = useState(false),
     dispatch = useDispatch();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: mount-only app bootstrap
   useEffect(() => {
     document.title = TITLE;
     dispatch(setScope(0.5));
+  }, []);
+
+  // Keep optional viewers and their download utilities out of the critical
+  // rendering path. They are requested only after the first paint is settled.
+  useEffect(() => {
+    const timer = window.setTimeout(() => setResourceUiReady(true), 500);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -72,7 +85,11 @@ function App() {
             <Spinner size={"lg"} color="colorPalette.400" borderWidth="3px" colorPalette={color} />
           </Center>
         </Presence>
-        <Resource.Viewport />
+        {resourceUiReady && (
+          <Suspense fallback={null}>
+            <ResourceViewport />
+          </Suspense>
+        )}
       </Box>
       <Toaster />
     </Grid>

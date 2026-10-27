@@ -54,12 +54,14 @@ export default async function getSubjects(
   try {
     const subjectsCollection = collection(db, "subjects");
 
-    // NOTE: no orderBy on the filtered query on purpose.
-    // where("belongTo", "==") + orderBy("createdTime") needs a composite
-    // index (FAILED_PRECONDITION -> shown as 400) when it isn't deployed yet,
-    // so filter server-side and sort client-side instead.
+    // The composite index in firestore.indexes.json keeps this ordered query
+    // server-side, avoiding an unnecessary client-side sort.
     const q = collectionId
-      ? query(subjectsCollection, where("belongTo", "==", doc(db, "collections", collectionId)))
+      ? query(
+          subjectsCollection,
+          where("belongTo", "==", doc(db, "collections", collectionId)),
+          orderBy("createdTime", "asc"),
+        )
       : query(subjectsCollection, orderBy("createdTime", "asc"));
 
     const lastFetch = localStorage.getItem(CACHE_KEY),
@@ -82,7 +84,7 @@ export default async function getSubjects(
       localStorage.setItem(CACHE_KEY, now.toString());
     }
 
-    successCallback(mapSubjectDocs(snapshot).sort((a, b) => a.createdTime - b.createdTime));
+    successCallback(mapSubjectDocs(snapshot));
   } catch (error_) {
     console.error("[getSubjects]", error_);
     errorCallback(error_);
