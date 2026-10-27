@@ -5,6 +5,7 @@ declare global {
     id: string;
     title: string;
     createdTime: number;
+    relatedSubjects: number;
   }
 
   interface SubjectInterface {
@@ -13,6 +14,7 @@ declare global {
     title: string;
     createdTime: number;
     belongToId: string;
+    relatedResources: number;
   }
 
   interface ResourceInterface {

@@ -13,7 +13,7 @@ import {
 } from "@chakra-ui/react";
 import { Icon as Iconify } from "@iconify/react";
 import type { FirebaseError } from "firebase/app";
-import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
+import { collection, doc, increment, runTransaction } from "firebase/firestore";
 import type React from "react";
 import { useState } from "react";
 import { toaster } from "@/components/ui/toaster";
@@ -97,17 +97,22 @@ const subjectDialog = createOverlay<Props>(
           try {
             const time = Date.now();
             const belongToRef = doc(db, "collections", belongToId);
-            const docRef = await addDoc(collection(db, "subjects"), {
-              title,
-              icon,
-              belongTo: belongToRef,
-              createdTime: time,
+            const subjectRef = doc(collection(db, "subjects"));
+            await runTransaction(db, async (transaction) => {
+              transaction.set(subjectRef, {
+                title,
+                icon,
+                belongTo: belongToRef,
+                createdTime: time,
+                relatedResources: 0,
+              });
+              transaction.update(belongToRef, { relatedSubjects: increment(1) });
             });
 
             clearSubjectCache(belongToId);
 
             if (setSubject) {
-              setSubject(docRef.id, title, icon, time, belongToId);
+              setSubject(subjectRef.id, title, icon, time, belongToId);
             }
           } catch (error_) {
             const err = error_ as FirebaseError;
@@ -146,10 +151,15 @@ const subjectDialog = createOverlay<Props>(
           try {
             const subjectRef = doc(db, "subjects", id);
             const belongToRef = doc(db, "collections", belongToId);
-            await updateDoc(subjectRef, {
-              title,
-              icon,
-              belongTo: belongToRef,
+            await runTransaction(db, async (transaction) => {
+              const subjectSnapshot = await transaction.get(subjectRef);
+              if (!subjectSnapshot.exists()) throw new Error("not-found");
+              const previousCollection = subjectSnapshot.data().belongTo;
+              transaction.update(subjectRef, { title, icon, belongTo: belongToRef });
+              if (previousCollection?.path !== belongToRef.path) {
+                transaction.update(previousCollection, { relatedSubjects: increment(-1) });
+                transaction.update(belongToRef, { relatedSubjects: increment(1) });
+              }
             });
 
             clearSubjectCache(belongToId, defaultBelongToId);

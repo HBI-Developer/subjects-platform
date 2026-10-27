@@ -16,7 +16,7 @@ import {
   Tabs,
   VStack,
 } from "@chakra-ui/react";
-import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
+import { collection, doc, increment, updateDoc, writeBatch } from "firebase/firestore";
 import { useState } from "react";
 import { BiPlus } from "react-icons/bi";
 import { FaTimes } from "react-icons/fa";
@@ -238,13 +238,17 @@ const resourceDialog = createOverlay<Props>(
           const time = Date.now();
           const subjectRef = doc(db, "subjects", subjectId as string);
           const currentResources = type === "images" ? images : (finalStorage as Array<string>);
-          const newDoc = await addDoc(collection(db, "resources"), {
+          const newDoc = doc(collection(db, "resources"));
+          const batch = writeBatch(db);
+          batch.set(newDoc, {
             title,
             type: type,
             resources: currentResources,
             subject: subjectRef,
             createdTime: time,
           });
+          batch.update(subjectRef, { relatedResources: increment(1) });
+          await batch.commit();
           localStorage.removeItem(`last_fetch_res_${subjectId}`);
           if (setResource) {
             setResource(newDoc.id, type, title, currentResources, time);

@@ -45,6 +45,7 @@ const collectionDialog = createOverlay<Props>(
             const docRef = await addDoc(collection(db, "collections"), {
               title: cleaned,
               createdTime: time,
+              relatedSubjects: 0,
             });
 
             localStorage.removeItem("last_fetch_collections");

@@ -13,21 +13,17 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { signOut } from "firebase/auth";
-import type { FirestoreError } from "firebase/firestore";
+import { collection, limit, onSnapshot, orderBy, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { FaPlus } from "react-icons/fa6";
 import { IoMdExit } from "react-icons/io";
 import { MdFolderCopy } from "react-icons/md";
-import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { ORPHAN_COLLECTION_ID, TITLE } from "@/constants";
-import { auth } from "@/firebase-config";
-import getCollections from "@/functions/getcollections";
+import { auth, db } from "@/firebase-config";
 import getErrorMessage from "@/functions/geterrormessage";
-import getSubjects from "@/functions/getsubjects";
 import { useAuthState } from "@/hooks/useauthstate";
-import type { RootState } from "@/store";
 import {
   CollectionDialog,
   IconSelector,
@@ -54,9 +50,11 @@ export default function Dashboard() {
     [subjects, setSubjects] = useState<Array<SubjectInterface>>([]),
     [collections, setCollections] = useState<Array<CollectionInterface>>([]),
     [isLoading, setIsLoading] = useState(true),
+    [subjectLimit, setSubjectLimit] = useState(9),
+    [collectionLimit, setCollectionLimit] = useState(10),
+    [listenerVersion, setListenerVersion] = useState(0),
     [isSignout, setIsSignout] = useState(false),
     [error, setError] = useState<number | string>(0),
-    subjectCounter = useSelector((state: RootState) => state.counter.dashboardSubject),
     navigate = useNavigate(),
     collectionTitleOf = (belongToId: string) =>
       collections.find((collection) => collection.id === belongToId)?.title || "يتيمة",
@@ -75,49 +73,65 @@ export default function Dashboard() {
         prev.map((item) => (item.id === subjectId ? { ...item, belongToId } : item)),
       );
     },
-    fetchAll = () => {
-      let subjectsDone = false,
-        collectionsDone = false;
-
-      const maybeFinish = () => {
-        if (subjectsDone && collectionsDone) {
-          setIsLoading(false);
-        }
-      };
-
-      void getSubjects(
-        (data: Array<SubjectInterface>) => {
-          setSubjects(data);
-        },
-        (error_: unknown) => {
-          const error = error_ as FirestoreError;
-          setError(error.code);
-        },
-        () => {
-          subjectsDone = true;
-          maybeFinish();
-        },
-      );
-      void getCollections(
-        (data: Array<CollectionInterface>) => {
-          setCollections(data);
-        },
-        (error_: unknown) => {
-          const error = error_ as FirestoreError;
-          setError(error.code);
-        },
-        () => {
-          collectionsDone = true;
-          maybeFinish();
-        },
-      );
+    refresh = () => {
+      setError(0);
+      setIsLoading(true);
+      setListenerVersion((version) => version + 1);
     };
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: mount-only fetch; helper has per-render identity and is also called from the retry handler
   useEffect(() => {
-    fetchAll();
     document.title = `${TITLE} | لوحة التحكم`;
-  }, []);
+    if (listenerVersion > 0) setIsLoading(true);
+    let subjectsReady = false;
+    let collectionsReady = false;
+    const finishInitialLoad = () => {
+      if (subjectsReady && collectionsReady) setIsLoading(false);
+    };
+    // These listeners use the SDK's persistent local cache first, then emit a
+    // server snapshot. Local writes are optimistic and every manager receives
+    // the same subsequent remote changes.
+    const unsubscribeSubjects = onSnapshot(
+      query(collection(db, "subjects"), orderBy("createdTime", "asc"), limit(subjectLimit)),
+      { includeMetadataChanges: true },
+      (snapshot) => {
+        setError(0);
+        setSubjects(
+          snapshot.docs.map((item) => {
+            const data = item.data() as Omit<SubjectInterface, "id" | "belongToId"> & {
+              belongTo?: { id: string };
+            };
+            return { id: item.id, ...data, belongToId: data.belongTo?.id || "" };
+          }),
+        );
+        subjectsReady = true;
+        finishInitialLoad();
+      },
+      (snapshotError) => {
+        setError(snapshotError.code);
+        setIsLoading(false);
+      },
+    );
+    const unsubscribeCollections = onSnapshot(
+      query(collection(db, "collections"), orderBy("createdTime", "asc"), limit(collectionLimit)),
+      { includeMetadataChanges: true },
+      (snapshot) => {
+        setError(0);
+        setCollections(
+          snapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as CollectionInterface),
+        );
+        collectionsReady = true;
+        finishInitialLoad();
+      },
+      (snapshotError) => {
+        setError(snapshotError.code);
+        setIsLoading(false);
+      },
+    );
+    return () => {
+      unsubscribeSubjects();
+      unsubscribeCollections();
+    };
+  }, [collectionLimit, listenerVersion, subjectLimit]);
 
   return (
     <>
@@ -189,6 +203,7 @@ export default function Dashboard() {
                 subjects,
                 setCollections,
                 setSubjects,
+                loadMoreCollections: () => setCollectionLimit((value) => value + 10),
               });
             }}
           >
@@ -204,7 +219,10 @@ export default function Dashboard() {
               CollectionDialog.open("collectionDialog", {
                 process: "add",
                 setCollection: (id, title, createdTime) => {
-                  setCollections((prev) => [...prev, { id, title, createdTime }]);
+                  setCollections((prev) => [
+                    ...prev,
+                    { id, title, createdTime, relatedSubjects: 0 },
+                  ]);
                 },
               });
             }}
@@ -223,7 +241,7 @@ export default function Dashboard() {
                 setSubject: (id, title, icon, createdTime, belongToId) => {
                   setSubjects((subjects) => [
                     ...subjects,
-                    { id, title, icon, createdTime, belongToId },
+                    { id, title, icon, createdTime, belongToId, relatedResources: 0 },
                   ]);
                 },
               });
@@ -245,7 +263,7 @@ export default function Dashboard() {
                   size={"sm"}
                   onClick={() => {
                     setIsLoading(true);
-                    fetchAll();
+                    refresh();
                     setError(0);
                   }}
                 >
@@ -265,6 +283,15 @@ export default function Dashboard() {
             }}
             justifyContent={"space-between"}
             rowGap={"20px"}
+            onScroll={(event) => {
+              const element = event.currentTarget;
+              if (
+                subjects.length === subjectLimit &&
+                element.scrollTop + element.clientHeight >= element.scrollHeight - 600
+              ) {
+                setSubjectLimit((value) => value + 9);
+              }
+            }}
           >
             {subjects.map((subject) => (
               <Subject
@@ -273,6 +300,7 @@ export default function Dashboard() {
                 id={subject.id}
                 icon={subject.icon}
                 belongToId={subject.belongToId}
+                relatedResources={subject.relatedResources || 0}
                 collectionTitle={collectionTitleOf(subject.belongToId)}
                 collections={collections.filter(
                   (collection) => collection.id !== ORPHAN_COLLECTION_ID,
@@ -285,7 +313,7 @@ export default function Dashboard() {
         </Show>
       </Grid>
       <Presence
-        present={isLoading && subjectCounter === subjects.length}
+        present={isLoading}
         animationName={{
           _closed: "fade-out",
         }}

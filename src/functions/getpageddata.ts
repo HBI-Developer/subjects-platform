@@ -18,13 +18,14 @@ export async function getPage<T>(
   pageQuery: Query<DocumentData>,
   map: (document: QueryDocumentSnapshot<DocumentData>) => T,
   preferCache = true,
+  pageSize = PAGE_SIZE,
 ): Promise<FirestorePage<T>> {
   if (!preferCache) {
     const snapshot = await getDocsFromServer(pageQuery);
     return {
       data: snapshot.docs.map(map),
       cursor: snapshot.docs.at(-1),
-      hasMore: snapshot.docs.length === PAGE_SIZE,
+      hasMore: snapshot.docs.length === pageSize,
       fromCache: false,
     };
   }
@@ -36,7 +37,7 @@ export async function getPage<T>(
     return {
       data: snapshot.docs.map(map),
       cursor: snapshot.docs.at(-1),
-      hasMore: snapshot.docs.length === PAGE_SIZE,
+      hasMore: snapshot.docs.length === pageSize,
       fromCache: true,
     };
   } catch {
@@ -44,7 +45,7 @@ export async function getPage<T>(
     return {
       data: snapshot.docs.map(map),
       cursor: snapshot.docs.at(-1),
-      hasMore: snapshot.docs.length === PAGE_SIZE,
+      hasMore: snapshot.docs.length === pageSize,
       fromCache: false,
     };
   }

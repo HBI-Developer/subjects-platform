@@ -2,16 +2,16 @@ import {
   Avatar,
   Button,
   Center,
-  For,
   Grid,
   Heading,
   Icon,
   Menu,
   Portal,
   Text,
+  useBreakpointValue,
 } from "@chakra-ui/react";
-import type { FirestoreError } from "firebase/firestore";
-import { type Dispatch, type SetStateAction, useState } from "react";
+import type { FirestoreError, QueryDocumentSnapshot } from "firebase/firestore";
+import { type Dispatch, type SetStateAction, useCallback, useRef, useState } from "react";
 import { FaRegFolderOpen, FaTrash } from "react-icons/fa6";
 import { HiDotsVertical } from "react-icons/hi";
 import { MdEdit } from "react-icons/md";
@@ -23,44 +23,62 @@ import {
   TbPhoto,
 } from "react-icons/tb";
 import { Switch } from "@/components";
+import VirtualPanelList from "@/components/virtualpanellist";
 import getErrorMessage from "@/functions/geterrormessage";
-import getResources from "@/functions/getresources";
+import getResourcesPage from "@/functions/getresourcespage";
 import { ResourceDeleteConfirm, ResourceDialog } from "../../..";
+import styles from "../../index.module.scss";
+
+const RESOURCE_ITEM_HEIGHT = 66;
+const RESOURCE_PAGE_SIZE = 20;
+
+function mergeResources(
+  previous: Array<ResourceInterface>,
+  next: Array<ResourceInterface>,
+): Array<ResourceInterface> {
+  const byId = new Map(previous.map((resource) => [resource.id, resource]));
+  for (const resource of next) byId.set(resource.id, resource);
+  return [...byId.values()];
+}
 
 interface Props {
   readonly id: string;
   readonly resourcesCount: number | string;
   readonly resources: Array<ResourceInterface>;
   readonly setResources: Dispatch<SetStateAction<Array<ResourceInterface>>>;
-  readonly setResourcesCount: Dispatch<SetStateAction<number>>;
 }
 
-export default function SubjectBody({
-  resources,
-  setResources,
-  setResourcesCount,
-  id,
-  resourcesCount,
-}: Props) {
-  const [isLoading, setIsLoading] = useState(false),
+export default function SubjectBody({ resources, setResources, id, resourcesCount }: Props) {
+  const scrollStyle = useBreakpointValue({ base: "", md: styles.scrollbar }),
+    [isLoading, setIsLoading] = useState(false),
+    [isLoadingMore, setIsLoadingMore] = useState(false),
+    [hasMore, setHasMore] = useState(true),
     [error, setError] = useState<number | string>(0),
-    fetchResource = () => {
-      setIsLoading(true);
-      setError(0);
-      void getResources(
-        id,
-        (data) => {
-          setResources(data);
-        },
-        (error_) => {
+    cursor = useRef<QueryDocumentSnapshot | undefined>(undefined),
+    fetchResource = useCallback(
+      async (nextPage = false) => {
+        if (nextPage && (!hasMore || isLoadingMore)) return;
+        nextPage ? setIsLoadingMore(true) : setIsLoading(true);
+        setError(0);
+        try {
+          const page = await getResourcesPage(
+            id,
+            nextPage ? cursor.current : undefined,
+            RESOURCE_PAGE_SIZE,
+          );
+          cursor.current = page.cursor;
+          setHasMore(page.hasMore);
+          setResources((previous) => (nextPage ? mergeResources(previous, page.data) : page.data));
+        } catch (error_) {
           const error = error_ as FirestoreError;
           setError(error.code);
-        },
-        () => {
+        } finally {
+          setIsLoadingMore(false);
           setIsLoading(false);
-        },
-      );
-    },
+        }
+      },
+      [hasMore, id, isLoadingMore, setResources],
+    ),
     applyResourceInfo =
       (resourceId: string) => (type: ResourceType, title: string, thisResources: Array<string>) => {
         setResources((resources) =>
@@ -84,7 +102,6 @@ export default function SubjectBody({
     },
     handleResourceDeleted = (resourceId: string) => () => {
       setResources((resources) => resources.filter(({ id }) => id !== resourceId));
-      setResourcesCount((count) => count - 1);
     },
     openDeleteResource = (resource: ResourceInterface, subjectId: string) => {
       ResourceDeleteConfirm.open("deleteResource", {
@@ -144,7 +161,9 @@ export default function SubjectBody({
                 variant={"outline"}
                 colorPalette={"purple"}
                 size={"sm"}
-                onClick={fetchResource}
+                onClick={() => {
+                  void fetchResource();
+                }}
               >
                 إعادة المحاولة
               </Button>
@@ -158,14 +177,24 @@ export default function SubjectBody({
           colorPalette={"purple"}
           size={"sm"}
           loading={isLoading}
-          onClick={fetchResource}
+          onClick={() => {
+            void fetchResource();
+          }}
         >
           جلب المصادر
         </Button>
       </Switch.Case>
       <Switch.Default>
-        <For each={resources}>
-          {(resource, index) => {
+        <VirtualPanelList
+          items={resources}
+          hasMore={hasMore}
+          isLoadingMore={isLoadingMore}
+          onLoadMore={() => {
+            void fetchResource(true);
+          }}
+          itemHeight={RESOURCE_ITEM_HEIGHT}
+          className={scrollStyle}
+          renderItem={(resource) => {
             const { color, icon } = getTypeIcon(resource.type);
             return (
               <Grid
@@ -173,7 +202,6 @@ export default function SubjectBody({
                 alignItems={"center"}
                 padding={".5rem"}
                 width={"100%"}
-                key={index}
                 borderRadius={".35rem"}
                 columnGap={"10px"}
                 backgroundColor={{ base: "gray.950", _hover: "gray.500" }}
@@ -244,7 +272,7 @@ export default function SubjectBody({
               </Grid>
             );
           }}
-        </For>
+        />
       </Switch.Default>
     </Switch.Root>
   );

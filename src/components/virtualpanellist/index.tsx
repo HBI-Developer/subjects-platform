@@ -1,7 +1,7 @@
 import { Box, Center, Spinner } from "@chakra-ui/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const ITEM_HEIGHT = 115;
+const DEFAULT_ITEM_HEIGHT = 115;
 const OVERSCAN = 4;
 
 interface Props<T extends { id: string }> {
@@ -10,6 +10,8 @@ interface Props<T extends { id: string }> {
   readonly isLoadingMore: boolean;
   readonly onLoadMore: () => void;
   readonly renderItem: (item: T) => React.ReactNode;
+  readonly itemHeight?: number;
+  readonly className?: string;
 }
 
 /** A fixed-row window: only visible cards (plus a small buffer) are mounted. */
@@ -19,6 +21,8 @@ export default function VirtualPanelList<T extends { id: string }>({
   isLoadingMore,
   onLoadMore,
   renderItem,
+  itemHeight = DEFAULT_ITEM_HEIGHT,
+  className,
 }: Props<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
@@ -32,11 +36,11 @@ export default function VirtualPanelList<T extends { id: string }>({
     if (
       hasMore &&
       !isLoadingMore &&
-      element.scrollTop + element.clientHeight >= element.scrollHeight - ITEM_HEIGHT * 4
+      element.scrollTop + element.clientHeight >= element.scrollHeight - itemHeight * 4
     ) {
       onLoadMore();
     }
-  }, [hasMore, isLoadingMore, onLoadMore]);
+  }, [hasMore, isLoadingMore, itemHeight, onLoadMore]);
 
   useEffect(() => {
     updateViewport();
@@ -47,8 +51,8 @@ export default function VirtualPanelList<T extends { id: string }>({
     return () => observer.disconnect();
   }, [updateViewport]);
 
-  const first = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - OVERSCAN);
-  const count = Math.ceil(height / ITEM_HEIGHT) + OVERSCAN * 2;
+  const first = Math.max(0, Math.floor(scrollTop / itemHeight) - OVERSCAN);
+  const count = Math.ceil(height / itemHeight) + OVERSCAN * 2;
   const visible = items.slice(first, first + count);
 
   return (
@@ -58,16 +62,17 @@ export default function VirtualPanelList<T extends { id: string }>({
       minHeight="0"
       width="100%"
       overflowY="auto"
+      className={className}
       onScroll={updateViewport}
     >
-      <Box position="relative" minHeight={`${items.length * ITEM_HEIGHT}px`}>
+      <Box position="relative" minHeight={`${items.length * itemHeight}px`}>
         {visible.map((item, index) => (
           <Box
             key={item.id}
             position="absolute"
-            top={`${(first + index) * ITEM_HEIGHT}px`}
+            top={`${(first + index) * itemHeight}px`}
             width="100%"
-            height={`${ITEM_HEIGHT}px`}
+            height={`${itemHeight}px`}
             display="flex"
             justifyContent={{ base: "center", md: "flex-start" }}
           >
@@ -76,7 +81,7 @@ export default function VirtualPanelList<T extends { id: string }>({
         ))}
       </Box>
       {isLoadingMore && (
-        <Center height={`${ITEM_HEIGHT}px`}>
+        <Center height={`${itemHeight}px`}>
           <Spinner size="sm" />
         </Center>
       )}

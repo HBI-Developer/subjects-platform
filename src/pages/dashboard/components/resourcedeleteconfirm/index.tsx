@@ -1,6 +1,6 @@
 import { Button, createOverlay, Dialog, Portal } from "@chakra-ui/react";
 import type { FirebaseError } from "firebase/app";
-import { deleteDoc, doc } from "firebase/firestore";
+import { doc, increment, writeBatch } from "firebase/firestore";
 import { useState } from "react";
 import { toaster } from "@/components/ui/toaster";
 import { db } from "@/firebase-config";
@@ -27,7 +27,10 @@ const resourceDeleteConfirm = createOverlay<Props>(
         }
         setDeleting(true);
         try {
-          await deleteDoc(doc(db, "resources", id));
+          const batch = writeBatch(db);
+          batch.delete(doc(db, "resources", id));
+          batch.update(doc(db, "subjects", subjectId), { relatedResources: increment(-1) });
+          await batch.commit();
           localStorage.removeItem(`last_fetch_res_${subjectId}`);
           onSuccess();
         } catch (error_) {

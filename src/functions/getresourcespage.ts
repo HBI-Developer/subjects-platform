@@ -9,15 +9,21 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "@/firebase-config";
-import { getPage } from "./getpageddata";
+import { getPage, PAGE_SIZE } from "./getpageddata";
 
-export default function getResourcesPage(subjectId: string, cursor?: QueryDocumentSnapshot) {
+export default function getResourcesPage(
+  subjectId: string,
+  cursor?: QueryDocumentSnapshot,
+  pageSize = PAGE_SIZE,
+) {
   const base = query(
     collection(db, "resources"),
     where("subject", "==", doc(db, "subjects", subjectId)),
     orderBy("createdTime", "asc"),
   );
-  const pageQuery = cursor ? query(base, startAfter(cursor), limit(15)) : query(base, limit(15));
+  const pageQuery = cursor
+    ? query(base, startAfter(cursor), limit(pageSize))
+    : query(base, limit(pageSize));
   return getPage(
     pageQuery,
     (snapshot) => {
@@ -25,5 +31,6 @@ export default function getResourcesPage(subjectId: string, cursor?: QueryDocume
       return { id: snapshot.id, ...resource } as ResourceInterface;
     },
     !cursor,
+    pageSize,
   );
 }

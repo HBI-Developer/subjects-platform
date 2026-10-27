@@ -9,22 +9,16 @@ import {
   Portal,
   Separator,
   Text,
-  useBreakpointValue,
   VStack,
 } from "@chakra-ui/react";
 import { Icon as Iconify } from "@iconify/react";
-import type { FirebaseError } from "firebase/app";
 import { useEffect, useState } from "react";
 import { FaPlus, FaTrash } from "react-icons/fa6";
 import { HiDotsVertical } from "react-icons/hi";
 import { MdEdit } from "react-icons/md";
-import { useDispatch } from "react-redux";
 import { ORPHAN_COLLECTION_ID } from "@/constants";
-import getResourcesCount from "@/functions/getresourcescount";
-import { increaseDashboardSubject } from "@/store/slice/counter";
 import { ResourceDialog, SubjectDialog } from "..";
 import { SubjectBody } from "./components";
-import styles from "./index.module.scss";
 
 interface Props {
   readonly id: string;
@@ -32,6 +26,7 @@ interface Props {
   readonly title: string;
   readonly belongToId: string;
   readonly collectionTitle: string;
+  readonly relatedResources: number;
   readonly collections: Array<CollectionInterface>;
   readonly onDelete: () => void;
   readonly onCollectionChange: (belongToId: string) => void;
@@ -43,17 +38,16 @@ export default function Subject({
   title: initialTitle,
   belongToId: initialBelongToId,
   collectionTitle,
+  relatedResources,
   collections,
   onDelete,
   onCollectionChange,
 }: Props) {
-  const scrollStyle = useBreakpointValue({ base: "", md: styles.scrollbar }),
-    [title, setTitle] = useState(initialTitle),
+  const [title, setTitle] = useState(initialTitle),
     [resources, setResources] = useState<Array<ResourceInterface>>([]),
     [icon, setIcon] = useState(initialIcon),
     [belongToId, setBelongToId] = useState(initialBelongToId),
-    [resourcesCount, setResourcesCount] = useState<number>(0),
-    [countError, setCountError] = useState<number | string>(0),
+    [resourcesCount, setResourcesCount] = useState<number>(relatedResources),
     isOrphan = belongToId === ORPHAN_COLLECTION_ID,
     resourcesCountInWord = (count: number) => {
       switch (true) {
@@ -77,24 +71,17 @@ export default function Subject({
           return `${count} مصدر`;
         }
       }
-    },
-    dispatch = useDispatch();
+    };
 
   useEffect(() => {
-    void getResourcesCount(
-      id,
-      (count) => {
-        setResourcesCount(count);
-      },
-      (error_: unknown) => {
-        const error = error_ as FirebaseError;
-        setCountError(error.code);
-      },
-      () => {
-        setTimeout(() => dispatch(increaseDashboardSubject()), 0);
-      },
-    );
-  }, [dispatch, id]);
+    setResourcesCount(relatedResources);
+  }, [relatedResources]);
+
+  useEffect(() => {
+    setTitle(initialTitle);
+    setIcon(initialIcon);
+    setBelongToId(initialBelongToId);
+  }, [initialIcon, initialTitle, initialBelongToId]);
 
   return (
     <Grid
@@ -127,7 +114,7 @@ export default function Subject({
             {title}
           </Heading>
           <Text textStyle={{ base: "xs", md: "sm" }} color={"gray.500"} truncate>
-            {countError ? "حدث خطأ في جلب العدد" : resourcesCountInWord(resourcesCount)}
+            {resourcesCountInWord(resourcesCount)}
           </Text>
           <Text
             textStyle={{ base: "xs", md: "sm" }}
@@ -199,18 +186,12 @@ export default function Subject({
         </Menu.Root>
       </Grid>
       <Separator borderColor={"purple.800"} />
-      <Box
-        padding={".5rem 1rem"}
-        overflowY={"auto"}
-        className={scrollStyle}
-        css={{ "& > *:not(:last-child)": { marginBottom: "10px" } }}
-      >
+      <Box padding={".5rem 1rem"} display={"flex"} minHeight={"0"}>
         <SubjectBody
           id={id}
           resourcesCount={resourcesCount}
           resources={resources}
           setResources={setResources}
-          setResourcesCount={setResourcesCount}
         />
       </Box>
       <Separator borderColor={"purple.800"} />
@@ -231,8 +212,6 @@ export default function Subject({
                     { id, type, title, resources: thisResources, createdTime },
                   ]);
                 }
-
-                setResourcesCount((count) => count + 1);
               },
             });
           }}

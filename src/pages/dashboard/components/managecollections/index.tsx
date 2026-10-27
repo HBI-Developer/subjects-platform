@@ -9,7 +9,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import type { FirebaseError } from "firebase/app";
-import { collection, doc, getDocs, query, where, writeBatch } from "firebase/firestore";
+import { collection, doc, getDocs, increment, query, where, writeBatch } from "firebase/firestore";
 import { type Dispatch, type SetStateAction, useState } from "react";
 import { FaTrash } from "react-icons/fa6";
 import { MdEdit } from "react-icons/md";
@@ -24,18 +24,17 @@ interface Props {
   subjects: Array<SubjectInterface>;
   setCollections: Dispatch<SetStateAction<Array<CollectionInterface>>>;
   setSubjects: Dispatch<SetStateAction<Array<SubjectInterface>>>;
+  loadMoreCollections: () => void;
 }
 
 const manageCollections = createOverlay<Props>(
-  ({ collections, subjects, setCollections, setSubjects, ...rest }) => {
+  ({ collections, subjects, setCollections, setSubjects, loadMoreCollections, ...rest }) => {
     const [deletingId, setDeletingId] = useState(""),
       [confirmId, setConfirmId] = useState(""),
       close = () => manageCollections.close("manageCollections"),
       visibleCollections = collections.filter(
         (collection) => collection.id !== ORPHAN_COLLECTION_ID,
       ),
-      countFor = (collectionId: string) =>
-        subjects.filter((subject) => subject.belongToId === collectionId).length,
       applyCollectionTitle = (collectionId: string) => (title: string) => {
         setCollections((prev) =>
           prev.map((item) => (item.id === collectionId ? { ...item, title } : item)),
@@ -74,6 +73,10 @@ const manageCollections = createOverlay<Props>(
           subjectsSnapshot.forEach((subjectDoc) => {
             batch.update(subjectDoc.ref, { belongTo: orphanRef });
           });
+
+          if (!subjectsSnapshot.empty) {
+            batch.update(orphanRef, { relatedSubjects: increment(subjectsSnapshot.size) });
+          }
 
           batch.delete(collectionRef);
           await batch.commit();
@@ -147,9 +150,9 @@ const manageCollections = createOverlay<Props>(
                           {collection.title}
                         </Heading>
                         <Text textStyle={"xs"} color={"gray.500"}>
-                          {countFor(collection.id) === 0
+                          {(collection.relatedSubjects || 0) === 0
                             ? "ﻻ توجد مواد"
-                            : `${countFor(collection.id)} مادة`}
+                            : `${collection.relatedSubjects} مادة`}
                         </Text>
                       </VStack>
                       {confirmId === collection.id ? (
@@ -197,6 +200,11 @@ const manageCollections = createOverlay<Props>(
                     </Flex>
                   ))}
                 </VStack>
+                {collections.length > 0 && collections.length % 10 === 0 && (
+                  <Button variant="outline" size="sm" onClick={loadMoreCollections}>
+                    عرض المزيد
+                  </Button>
+                )}
                 <Flex justifyContent={"center"}>
                   <Button variant={"outline"} colorPalette={"gray"} onClick={close}>
                     إغلاق
