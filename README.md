@@ -601,16 +601,16 @@ pnpm build
 
 The current implementation includes:
 
-- [x] Full CRUD workflows for collections, subjects, and resources in the dashboard
-- [x] Google Drive and Internet Archive link handling
-- [x] Microsoft Office resource support
-- [x] Migration from Plyr to Video.js
-- [x] Improved PDF, image, audio, video, and Office viewing flows
-- [x] Lowercase file and directory naming throughout the source tree
-- [x] Virtual scrolling in the dashboard
-- [x] Live updates between administrators (It has not been tested.)
-- [x] Counter Field usage instead of Aggregation Queries
-- [x] Firestore caching via IndexedDB
+- [x] Full CRUD workflows for collections, subjects, and resources in the dashboard.
+- [x] Google Drive and Internet Archive link handling.
+- [x] Microsoft Office resource support.
+- [x] Migration from Plyr to Video.js.
+- [x] Improved PDF, image, audio, video, and Office viewing flows.
+- [x] Lowercase file and directory naming throughout the source tree.
+- [x] Virtual scrolling in the dashboard.
+- [x] Live updates between administrators. (It has not been tested.)
+- [x] Counter Field usage instead of Aggregation Queries.
+- [x] Firestore caching via IndexedDB.
 
 <br>
 
